@@ -1,5 +1,5 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+import { bool, object } from 'prop-types';
 import { Meteor } from 'meteor/meteor';
 import { getLocalTime } from '../../../startup/lib/helpers.js';
 import Notices from '../../../api/notices/notices_collection.js';
@@ -7,7 +7,7 @@ import { withTracker } from 'meteor/react-meteor-data';
 
 function Banner({ ready, notice }) {
   function within(start, end) {
-    var now = getLocalTime().toDate();
+    let now = getLocalTime().toDate();
     return start < now && now < end;
   }
 
@@ -21,12 +21,12 @@ function Banner({ ready, notice }) {
 }
 
 Banner.propTypes = {
-  ready: PropTypes.bool,
-  notice: PropTypes.object
-}
+  ready: bool,
+  notice: object
+};
 
 export default withTracker(() => {
-  var s1 = Meteor.subscribe('notices');
+  let s1 = Meteor.subscribe('notices');
 
   return {
     ready: s1.ready(),

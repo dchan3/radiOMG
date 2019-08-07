@@ -8,7 +8,7 @@ import { FlowRouter } from 'meteor/kadira:flow-router';
 
 function PagesItem({ ready, page }) {
   if (ready) {
-    var { title, body } = page;
+    let { title, body } = page;
     return [
       <Metamorph title={`${title} - KTUH FM Honolulu | Radio for the People`}
         image='https://ktuh.org/img/ktuh-logo.jpg' description={`${
@@ -23,10 +23,10 @@ function PagesItem({ ready, page }) {
 PagesItem.propTypes = {
   ready: PropTypes.bool,
   page: PropTypes.object
-}
+};
 
 export default withTracker(() => {
-  var slug = FlowRouter.getParam('slug'),
+  let slug = FlowRouter.getParam('slug'),
     s1 = Meteor.subscribe('singlePage', slug, {
       onStop: function() {
         FlowRouter.go('/not-found');

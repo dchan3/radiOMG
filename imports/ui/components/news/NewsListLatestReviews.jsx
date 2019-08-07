@@ -1,5 +1,5 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+import { bool, array } from 'prop-types';
 import NewsListLatestReviewsItem from './NewsListLatestReviewsItem.jsx';
 import Reviews from '../../../api/reviews/reviews_collection.js';
 import { withTracker } from 'meteor/react-meteor-data';
@@ -10,19 +10,19 @@ function NewsListLatestReviews({ ready, reviews }) {
     <div className='news-list__latest-reviews'>
       <h4>LATEST REVIEWS</h4>
       {reviews.map((review) => (
-        <NewsListLatestReviewsItem review={review} key={review._id} />))}
+        <NewsListLatestReviewsItem {...{ review }} key={review._id} />))}
     </div>
   );
   else return null;
 }
 
 NewsListLatestReviews.propTypes = {
-  ready: PropTypes.bool,
-  reviews: PropTypes.array
-}
+  ready: bool,
+  reviews: array
+};
 
 export default withTracker(() => {
-  var s1 = Meteor.subscribe('reviewsLimited',
+  let s1 = Meteor.subscribe('reviewsLimited',
     { limit: 6, sort: { submitted: -1 } });
 
   return {

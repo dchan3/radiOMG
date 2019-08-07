@@ -11,6 +11,5 @@ export default function Support() {
     </p>
     <a href=
       'https://www.uhfoundation.org/give/giving-gift.aspx?school_code=ktuh'
-    className='color-button purple-button'>Donate Now</a>
-  </div>;
+    className='color-button purple-button'>Donate Now</a></div>;
 }

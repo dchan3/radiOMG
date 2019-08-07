@@ -46,17 +46,15 @@ export default function PlaylistTable({ tracks, onPage }) {
       {songsSorted().map(({
         start, artist, song, Timestamp, ArtistName, SongName
       }) => {
-        return start && <tr key=
-          {`${start} | ${artist} - ${artist}`}>
-          <td className='playlist__timestamp'>{
-            timeBeautify(start)}</td>
+        return start && <tr key={`${start} | ${artist} - ${artist}`}>
+          <td className='playlist__timestamp'>{timeBeautify(start)}</td>
           <td className='playlist__artist'>{artist}</td>
           <td className='playlist__title'>{song}</td>
         </tr> || <tr>
           <td className='playlist__timestamp'>{timeBeautify(
             truncated(Timestamp))}
           </td>
-          <td className='playlist__artist'>{ArtistName}}</td>
+          <td className='playlist__artist'>{ArtistName}</td>
           <td className='playlist__title'>{SongName}</td>
         </tr>;
       })}</tbody></table>;

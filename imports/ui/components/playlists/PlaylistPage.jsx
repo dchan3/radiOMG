@@ -48,56 +48,57 @@ function PlaylistPage({ playlist, ready }) {
   }, [playlist, state.playlistLoaded]);
 
   if (ready) {
-    var pid = playlist.spinPlaylistId, show = showIfAny(), showString =
-        `${showTime(playlist)} Sub Show with ${playlist.djName}`;
-    if (show) {
-      showString = `${show.showName} - ${
-        showDateOfLatestPlaylist(playlist.showDate)}`;
-    }
+    let { djName, showDate, spinPlaylistId } = playlist,
+      commentary = comments(), show = showIfAny(),
+      dateOfLatest = showDateOfLatestPlaylist(showDate),
+      showStr = show ? `${show.showName} - ${dateOfLatest}` :
+        `${showTime(playlist)} Sub Show with ${djName}`;
     if (!state.playlistLoaded) {
-      requestSpinData(pid, (error, result) => {
+      requestSpinData(spinPlaylistId, (error, result) => {
         if (!error && result) {
           Session.set('currentPlaylist',
-            pid > 10000 ?
-              result.data.items :
+            spinPlaylistId > 10000 ? result.data.items :
               JSON.parse(result.content).results);
-          Session.set('playlistViewing', pid);
-          self.setState({ playlistLoaded: true });
+          Session.set('playlistViewing', spinPlaylistId);
+          setState({ playlistLoaded: true });
         }
       });
     }
+
+    if (show) {
+      var { thumbnail, slug, showName, featuredImage } = show;
+    }
+
     return [
-      <Metamorph title={`${showString
-      } - KTUH FM Honolulu | Radio for the People`}
-      description={showString} image={show && show.thumbnail ||
+      <Metamorph title={`${showStr} - KTUH FM Honolulu | Radio for the People`}
+        description={showStr} image={thumbnail ||
           'https://ktuh.org/img/ktuh-logo.png'} />,
       <h2 className='general__header'>
-        {showIfAny() &&
-            [<a href={`/shows/${showIfAny().slug}`}>
-              {showIfAny().showName}
+        {show &&
+            [<a href={`/shows/${slug}`}>
+              {showName}
             </a>, ` playlist - ${
-              showDateOfLatestPlaylist(playlist.showDate)}`] ||
-            [`${showTime(playlist)} w/ ${playlist.djName
-            } playlist - ${showDateOfLatestPlaylist(playlist.showDate)}`]}
+              showDateOfLatestPlaylist(showDate)}`] ||
+            [`${showTime(playlist)} w/ ${djName
+            } playlist - ${showDateOfLatestPlaylist(showDate)}`]}
       </h2>,
       <div className='playlist__link'>
         <a href='/playlists' className='back-to'>← Back to Playlists</a>
       </div>,
       <div className='playlist__content'>
-        {showIfAny() ? <a href={`/shows/${showIfAny().slug}`}>
-          <img className='playlist__show-image' src={(showIfAny().thumbnail ||
-            (showIfAny().featuredImage && showIfAny().featuredImage.url) :
+        {show ? <a href={`/shows/${slug}`}>
+          <img className='playlist__show-image' src={(thumbnail ||
+            (featuredImage && featuredImage.url) :
             'https://ktuh.org/img/ktuh-logo.jpg')} />
         </a> : null}
         <PlaylistTable tracks={Session.get('currentPlaylist') || []}
           onPage={true}/>
         <div className='comments'>
           <h3 className='comments__header'>Comments</h3>
-          {comments().length &&
-              <ul className='comments__list'>
-                {comments().comments.map((comment) =>
-                  <CommentItem comment={comment}/>)}
-              </ul> || null}
+          {commentary.length && <ul className='comments__list'>
+            {commentary.map((comment) =>
+              <CommentItem {...{ comment } }/>)}
+          </ul> || null}
           {Meteor.user() && <CommentSubmit />  ||
             <p className='comments__text'>
               <i>Please log in to leave a comment.</i>

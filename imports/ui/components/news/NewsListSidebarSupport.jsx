@@ -12,10 +12,9 @@ export default function NewsListSidebarSupport() {
         looks to donations from the community.
       </p>
       <div className='button__wrapper'>
-        <a className='color-button purple-button'
-          href=
-            {'https://www.uhfoundation.org/give/giving-gift.aspx' +
-            '?school_code=ktuh'}>Donate Today</a>
+        <a className='color-button purple-button' href=
+          'https://www.uhfoundation.org/give/giving-gift.aspx?school_code=ktuh'>
+          Donate Today</a>
       </div>
     </div>
   );

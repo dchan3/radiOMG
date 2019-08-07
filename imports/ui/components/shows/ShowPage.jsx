@@ -28,6 +28,11 @@ function ShowPage({
     return global.player.getSrc() === mp3 && !global.player.getPaused();
   }
 
+  function toLocal(timeStr, f) {
+    return momentUtil(moment(momentUtil(timeStr, 'HH:mm'),
+      'Pacific/Honolulu')).format(f)
+  }
+
   function timeBeautify(startHour, startMinute, endHour, endMinute) {
     if (startMinute === 1) {
       startMinute--;
@@ -41,10 +46,8 @@ function ShowPage({
     else ap = 'h:mm';
 
     return `${
-      momentUtil(moment(momentUtil(`${startHour}:${startMinute}`, 'HH:mm'),
-        'Pacific/Honolulu')).format(ap)}-${
-      momentUtil(moment(momentUtil(`${endHour}:${endMinute}`, 'HH:mm'),
-        'Pacific/Honolulu')).format('h:mmA')}`;
+      toLocal(`${startHour}:${startMinute}`, ap)}-${
+      toLocal(`${endHour}:${endMinute}`, 'h:mmA')}`;
   }
 
   function time(t) {
@@ -100,11 +103,11 @@ function ShowPage({
   function requestSpinData() {
     var latest = latestPlaylist();
 
-    if (latest !== undefined) {
-      var parsedId = parseInt(latest.spinPlaylistId, 10);
+    if (latest) {
+      let parsedId = parseInt(latest.spinPlaylistId, 10);
       if (parsedId < 10000) {
-        Meteor.call('getPlaylistOrInfo',
-          parsedId, true, function(error, result) {
+        Meteor.call('getPlaylistOrInfo', parsedId, true,
+          function(error, result) {
             if (!error && result) {
               Session.set('currentPlaylist',
                 JSON.parse(result.content).results);
@@ -131,7 +134,7 @@ function ShowPage({
   }, [state.playlistLoaded]);
 
   if (ready) {
-    var { showName, host, featuredImage, thumbnail, genres, startHour,
+    let { showName, host, featuredImage, thumbnail, genres, startHour,
       startMinute, endHour, endMinute, startDay, latestEpisodeUrl } = show;
     if (!state.playlistLoaded) requestSpinData();
     return [
@@ -157,26 +160,19 @@ function ShowPage({
               {day(startDay)}{'s from '}
               {timeBeautify(startHour, startMinute, endHour, endMinute)}
             </h5>
-            {genres && genres.length &&
-            <div className='show-item__genres'>
+            {genres && genres.length && <div className='show-item__genres'>
               <span className='glyphicon glyphicon-music'></span>
-              {` ${genres.join(', ')}`}
-            </div> || null}
+              {` ${genres.join(', ')}`}</div> || null}
             <div className='show__buttons'>
               {latestEpisodeUrl &&
               <div className='button__wrapper'>
                 <p className='show__tag'>
-                  <button type="button"
-                    data-path={latestEpisodeUrl}
-                    className=
-                      {'btn btn-default show__play-btn color-button' + ' ' +
-                          'purple-button'} onClick={handlePlayClick}
-                    aria-label="Left Align">
-                    <span
-                      className=
-                        {`glyphicon ${(isPlaying(latestEpisodeUrl) &&
-                        'glyphicon-pause' || 'glyphicon-play')}`}
-                      aria-hidden="true"></span> {' '}Play latest episode
+                  <button type="button" data-path={latestEpisodeUrl} className=
+                    'btn btn-default show__play-btn color-button purple-button'
+                  onClick={handlePlayClick} aria-label="Left Align">
+                    <span className={`glyphicon ${isPlaying(latestEpisodeUrl) &&
+                    'glyphicon-pause' || 'glyphicon-play'}`} aria-hidden="true">
+                    </span> {' '}Play latest episode
                   </button>
                 </p>
               </div> || null}
@@ -202,23 +198,22 @@ function ShowPage({
           <h2 className='show__latest-date'>
             {time(latestPlaylist().showDate)}
           </h2>
-          {pastPlaylists(show.showId).length > 0 &&
-            (
-              <select onChange={handleSelectChange}>
-                <option value="" disabled={true} selected={true}>
-                Past Playlists &#x25BC;
-                </option>
-                {playlistsByYear(show.showId)
-                  .map((playlistGroup) => ([
-                    <option value={`${playlistGroup.year}`} disabled={true}
-                      key={`${playlistGroup.year}`}>
-                      {playlistGroup.year}</option>,
-                    playlistGroup.shows.map((show, i) => (
-                      <option value={show.spinPlaylistId} key={i}>
-                        {time(show.showDate)}
-                      </option>))
-                  ]))}
-              </select>) || null}
+          {pastPlaylists(show.showId).length && (
+            <select onChange={handleSelectChange}>
+              <option value="" disabled={true} selected={true}>
+              Past Playlists &#x25BC;
+              </option>
+              {playlistsByYear(show.showId)
+                .map(({ year, shows }) => ([
+                  <option value={`${year}`} disabled={true}
+                    key={`${year}`}>
+                    {year}</option>,
+                  shows.map(({ spinPlaylistId, showDate }, i) => (
+                    <option value={spinPlaylistId} key={i}>
+                      {time(showDate)}
+                    </option>))
+                ]))}
+            </select>) || null}
           <div className='show__latest-playlist' key='latest-playlist'>
             <table className='playlist'>
               <thead>
@@ -269,13 +264,13 @@ ShowPage.propTypes = {
   playlistsByYear: func,
   ready: bool,
   actualPlaylist: func
-}
+};
 
 export default withTracker(() => {
-  var slug = FlowRouter.getParam('slug'),
+  let slug = FlowRouter.getParam('slug'),
     s0, s2, s1 = Meteor.subscribe('singleShow', slug, {
       onReady: function() {
-        var show = Shows.findOne({ slug: slug });
+        let show = Shows.findOne({ slug });
         if (show) {
           s0 = Meteor.subscribe('userById', show.userId);
           s2 = Meteor.subscribe('showPlaylists', show.showId);
@@ -291,7 +286,7 @@ export default withTracker(() => {
     ready: s1.ready() && (s0 && s0.ready()) && (s2 && s2.ready()),
     actualPlaylist: function(playlistData) {
       if (playlistData === undefined) return [];
-      var retval = playlistData;
+      let retval = playlistData;
       retval.sort(function(a,b) {
         if (a.start > b.start) {
           return 1;
@@ -309,14 +304,12 @@ export default withTracker(() => {
         { sort: { showDate: -1 }, skip: 1 }).fetch()
     },
     playlistsByYear: (showId) => {
-      var playlistDates = Playlists.find({
-        showId: showId
-      }, { sort: { showDate: -1 }, skip: 1 }).fetch();
-      var uniqDates = uniq(map(pluck(playlistDates, 'showDate'),
-        (obj) => obj.getFullYear()), true, (date) => +date);
-      var a = [];
-      for (var p = 0; p < uniqDates.length; p++) {
-        var r = {};
+      let playlistDates = Playlists.find({ showId }, { sort: { showDate: -1 },
+          skip: 1 }).fetch(), uniqDates = uniq(map(pluck(playlistDates,
+          'showDate'), (obj) => obj.getFullYear()), true, (date) => +date),
+        a = [];
+      for (let p = 0; p < uniqDates.length; p++) {
+        let r = {};
         r.year = uniqDates[p];
         r.shows = filter(playlistDates,
           (obj) => obj.showDate.getFullYear() === uniqDates[p]);

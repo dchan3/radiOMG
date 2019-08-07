@@ -62,12 +62,12 @@ export default function MediaElement({ options, id, src }) {
   const mediaBody = `<source src="${src}" type="audio/mp3">`,
     mediaHtml = `<audio id="${id}" controls>${mediaBody}</audio>`;
 
-  return (<div className="audio-player"
-    dangerouslySetInnerHTML={{ __html: mediaHtml }}></div>);
+  return <div className="audio-player"
+    dangerouslySetInnerHTML={{ __html: mediaHtml }}></div>;
 }
 
 MediaElement.propTypes = {
   options: object,
   id: string,
   src: string
-}
+};

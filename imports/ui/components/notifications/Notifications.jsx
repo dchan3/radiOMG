@@ -1,5 +1,5 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+import { array } from 'prop-types';
 import { Meteor } from 'meteor/meteor';
 import Notifications from
   '../../../api/notifications/notifications_collection.js';
@@ -22,8 +22,8 @@ function NotificationsBox({  notifications }) {
 }
 
 NotificationsBox.propTypes = {
-  notifications: PropTypes.array
-}
+  notifications: array
+};
 
 export default withTracker(() => {
   return {

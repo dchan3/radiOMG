@@ -1,5 +1,5 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+import { string } from 'prop-types';
 import Notifications from
   '../../../api/notifications/notifications_collection.js';
 
@@ -17,7 +17,7 @@ export default function NotificationItem(
 }
 
 NotificationItem.propTypes = {
-  _id: PropTypes.string,
-  notificationPostPath: PropTypes.string,
-  commenterName: PropTypes.string
-}
+  _id: string,
+  notificationPostPath: string,
+  commenterName: string
+};

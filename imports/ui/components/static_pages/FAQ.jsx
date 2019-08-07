@@ -1,5 +1,5 @@
 import React, { useReducer, useEffect } from 'react';
-import PropTypes from 'prop-types';
+import { string, array } from 'prop-types';
 import { Metamorph } from 'react-metamorph';
 
 const faq_data = [
@@ -135,7 +135,7 @@ const faq_data = [
       '&#117;&#104;&#46;&#111;&#114;&#103;</a>.']
     ]
   }
-]
+];
 
 function QAPair({ question, answer }) {
   let [state, dispatch] = useReducer(function(state, str) {
@@ -148,7 +148,7 @@ function QAPair({ question, answer }) {
 
   useEffect(function() {
 
-  }, [state.expanded])
+  }, [state.expanded]);
 
   function handleClick() {
     dispatch('toggle');
@@ -179,9 +179,9 @@ function QAPair({ question, answer }) {
 }
 
 QAPair.propTypes = {
-  question: PropTypes.string,
-  answer: PropTypes.string
-}
+  question: string,
+  answer: string
+};
 
 function QASection({ title, pairs }) {
   return (
@@ -199,9 +199,9 @@ function QASection({ title, pairs }) {
 }
 
 QASection.propTypes = {
-  title: PropTypes.string,
-  pairs: PropTypes.array
-}
+  title: string,
+  pairs: array
+};
 
 export default function FAQ() {
   return [<Metamorph title=
@@ -209,8 +209,8 @@ export default function FAQ() {
   description="KTUH FAQ" image='https://ktuh.org/img/ktuh-logo.jpg' />,
   <h2 className='general__header'>Frequently Asked Questions</h2>,
   <div className='faq__content' key='faq-content'>
-    {faq_data.map((node) => (
-      <QASection title={node.title} pairs={node.pairs} />
+    {faq_data.map(({ title, pairs }) => (
+      <QASection {...{ title, pairs }} />
     ))}
   </div>];
 }

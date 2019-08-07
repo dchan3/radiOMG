@@ -27,7 +27,7 @@ function Staff({ ready, djs }) {
       image='https://ktuh.org/img/ktuh-logo.jpg' />,
     <h2 className='general__header'>KTUH Staff</h2>,
     <div className='staff__content' key="staff-content">
-      {djs.map((dj) => <StaffItem dj={dj} />)}
+      {djs.map((dj) => <StaffItem {...{ dj }} />)}
     </div>];
   }
   else return null;
@@ -35,12 +35,12 @@ function Staff({ ready, djs }) {
 
 StaffItem.propTypes = {
   dj: PropTypes.object
-}
+};
 
 Staff.propTypes = {
   ready: PropTypes.bool,
   djs: PropTypes.array
-}
+};
 
 export default withTracker(() => {
   var s1 = Meteor.subscribe('djProfiles'),

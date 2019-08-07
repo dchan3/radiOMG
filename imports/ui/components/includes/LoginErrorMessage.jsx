@@ -1,5 +1,5 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+import { string } from 'prop-types';
 
 export default function LoginErrorMessage({ errorMessage }) {
   return <div style={{ backgroundColor: 'pink', color: 'red',
@@ -9,5 +9,5 @@ export default function LoginErrorMessage({ errorMessage }) {
 }
 
 LoginErrorMessage.propTypes = {
-  errorMessage: PropTypes.string
-}
+  errorMessage: string
+};

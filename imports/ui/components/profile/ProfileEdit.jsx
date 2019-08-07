@@ -21,7 +21,7 @@ function ProfileEdit({ ready, profile }) {
 ProfileEdit.propTypes = {
   ready: PropTypes.bool,
   profile: PropTypes.object
-}
+};
 
 export default withTracker(() => {
   var userId = Meteor.userId(), s1 = null;

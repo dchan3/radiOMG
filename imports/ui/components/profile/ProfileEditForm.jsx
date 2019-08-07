@@ -35,6 +35,9 @@ export default function ProfileEditForm({ doc }) {
     setState(newState);
   }
 
+  var { name, website, soundcloud, instagram, facebook, twitter, snapchat } =
+    state;
+
   return (
     <Form collection={Profiles} doc={doc} onChange={handleChange}
       onSubmit={(data) => {
@@ -43,7 +46,7 @@ export default function ProfileEditForm({ doc }) {
       }} ref={formRef} type="update">
       <h4 className="profile-edit__label">Display Name</h4>
       <Field fieldName='name' label="Display Name" type={Text}
-        value={state.name} />
+        value={name} />
 
       <h4 className="profile-edit__label">Profile Photo</h4>
       <Field fieldName='photo' type={ObjectComponent}>
@@ -55,27 +58,27 @@ export default function ProfileEditForm({ doc }) {
 
       <h4 className="profile-edit__label">Website</h4>
       <Field fieldName='website' label="Website" type={Text}
-        value={state.website} />
+        value={website} />
 
       <h4 className="profile-edit__label">SoundCloud Handle</h4>
       <Field fieldName='soundcloud' label="SoundCloud Handle" type={Text}
-        value={state.soundcloud} />
+        value={soundcloud} />
 
       <h4 className="profile-edit__label">Instagram Handle</h4>
       <Field fieldName='instagram' label="Instagram Handle" type={Text}
-        value={state.instagram} />
+        value={instagram} />
 
       <h4 className="profile-edit__label">Facebook Handle</h4>
       <Field fieldName='facebook' label="Facebook Handle" type={Text}
-        value={state.facebook} />
+        value={facebook} />
 
       <h4 className="profile-edit__label">Twitter Handle</h4>
       <Field fieldName='twitter' label="Twitter Handle" type={Text}
-        value={state.twitter} />
+        value={twitter} />
 
       <h4 className="profile-edit__label">Snapchat Handle</h4>
       <Field fieldName='snapchat' label="Snapchat Handle" type={Text}
-        value={state.snapchat} />
+        value={snapchat} />
 
       <button type="submit" className="btn btn-primary">Submit</button>
     </Form>

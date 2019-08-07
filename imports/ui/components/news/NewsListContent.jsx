@@ -23,16 +23,15 @@ function NewsListContent({ ready, posts }) {
 NewsListContent.propTypes = {
   ready: PropTypes.bool,
   posts: PropTypes.array
-}
+};
 
 export default withTracker(() => {
-  var s1 = Meteor.subscribe('posts'),
+  let s1 = Meteor.subscribe('posts'),
     s2 = Meteor.subscribe('latestFeaturedPost'),
     s3 = Meteor.subscribe('djs'),
-    s4 = Meteor.subscribe('djProfiles');
-
-  var featuredPost = Posts.findOne({ approved: true, featured: true },
-    { sort: { submitted: -1 } });
+    s4 = Meteor.subscribe('djProfiles'),
+    featuredPost = Posts.findOne({ approved: true, featured: true },
+      { sort: { submitted: -1 } });
 
   return {
     ready: s1.ready() && s2.ready() && s3.ready() && s4.ready(),

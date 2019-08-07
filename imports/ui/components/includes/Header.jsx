@@ -157,4 +157,4 @@ export default function Header({ loaded }) {
 
 Header.propTypes = {
   loaded: oneOfType([bool, string])
-}
+};

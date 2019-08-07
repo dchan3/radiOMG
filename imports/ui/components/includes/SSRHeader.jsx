@@ -59,8 +59,7 @@ export default function SSRHeader() {
           <a href='/events'>Events</a>
         </li>
         <li className='nav-item nav-item__news'>
-          <a href='/radioblog'>Radioblog</a><
-        /li>
+          <a href='/radioblog'>Radioblog</a></li>
       </ul>
       <ul className='nav navbar-nav navbar-right'>
         <li className='nav-item'>

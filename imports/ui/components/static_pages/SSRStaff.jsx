@@ -27,7 +27,7 @@ function Staff({ ready, djs }){
       <h2 className='general__header'>KTUH Staff</h2>,
       <div className='staff__content' key="staff-content">
         {djs.map((dj) => {
-          return <StaffItem key={dj.userId} dj={dj} />
+          return <StaffItem key={dj.userId} {...{ dj }} />
         })}
       </div>
     ];
@@ -37,15 +37,14 @@ function Staff({ ready, djs }){
 
 StaffItem.propTypes = {
   dj: PropTypes.object
-}
+};
 
 Staff.propTypes = {
   ready: PropTypes.bool,
   djs: PropTypes.array
-}
+};
 
 export default <Staff
-  ready={true}
-  djs={Profiles.find({
-    userId: { $in: Shows.find().fetch().map((show) => show.userId) }
+  ready={true} djs={Profiles.find({
+    userId: { $in: Shows.find().fetch().map(({ userId }) => userId) }
   }, { sort: { name: 1 } }).fetch() } />

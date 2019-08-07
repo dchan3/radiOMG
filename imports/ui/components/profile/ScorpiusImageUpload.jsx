@@ -15,7 +15,7 @@ function ScorpiusImageUpload({ value, onChange, label }, ref) {
   function uploadHelper(files) {
     setState({ ready: false, value: state.value });
     if (scorpius.filesystem.isUploading()) return;
-    var upload = scorpius.filesystem.upload({
+    let upload = scorpius.filesystem.upload({
       fileList: files,
       name: files[0].name,
       uploader: 'image-attribute'

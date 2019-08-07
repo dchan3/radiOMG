@@ -8,16 +8,9 @@ import Shows from '../../../api/shows/shows_collection.js';
 import { Bert } from 'meteor/themeteorchef:bert';
 import { withTracker } from 'meteor/react-meteor-data';
 import { Metamorph } from 'react-metamorph';
+import ProfileSocialLink from './ProfileSocialLink.jsx';
 
-function ProfileSocialLink(url, handle, icon) {
-  if (handle) return <a href={`${url}${handle}`}>
-    <img className='profile__social-icon' src={`/img/${icon}.png`} /></a>
-  else return null;
-}
-
-function ProfilePage({
-  profile, show, posts
-}) {
+function ProfilePage({ profile, show, posts }) {
   function toggleBan() {
     if (Meteor.user().hasRole('admin')) {
       let username = FlowRouter.getParam('username'),
@@ -31,33 +24,26 @@ function ProfilePage({
 
   useEffect(() => {}, [Meteor.user() && Meteor.user().hasRole('admin')]);
 
-  if (profile !== undefined && !profile.banned || Meteor.user() !== null &&
+  if (profile && !profile.banned || Meteor.user() !== null &&
     Meteor.user().hasRole('admin')) {
     let { name, photo, userId, thumbnail, website, twitter, facebook,
-      snapchat, instagram, soundcloud } = profile;
+      snapchat, instagram, soundcloud, banned, bio } = profile;
     return [<Metamorph title={`${name
     }'s Profile - KTUH FM Honolulu | Radio for the People`}
     description={`${name}'s Profile`} image={photo && photo.url ||
       'https://ktuh.org/img/ktuh-logo.jpg'} />,
     <h2 className='general__header'>{name}</h2>,
     <div className='profile'>
-      {Meteor.userId() && userId === Meteor.userId() && (
-        <div>
-          <a href='/profile'>
-            <button type='button'
-              className='btn btn-default btn-md party-header__button'>
-              <span className='glyphicon glyphicon-edit'
-                aria-hidden='true'></span>
-              Edit
-            </button>
-          </a>
-        </div>) || null}
+      {Meteor.userId() && userId === Meteor.userId() && (<div>
+        <a href='/profile'><button type='button'
+          className='btn btn-default btn-md party-header__button'>
+          <span className='glyphicon glyphicon-edit' aria-hidden='true'>
+          </span>Edit</button>
+        </a>
+      </div>) || null}
       <div className='profile__left'>
-        <img className='profile__pic'
-          src={((thumbnail || null) ||
-          (photo && photo.url || null)) ||
-          ((!thumbnail && !photo) && 'https://ktuh.org/img/ktuh-logo.jpg' ||
-          null)} />
+        <img className='profile__pic' src={thumbnail || (photo && photo.url) ||
+          'https://ktuh.org/img/ktuh-logo.jpg' || null} />
         {(website || twitter || facebook || snapchat || soundcloud || instagram)
           && (<div className='profile__social-icons'>
             {[
@@ -76,23 +62,19 @@ function ProfilePage({
           </div> || null}
       </div>
       <div className='profile__info'>
-        <div className='profile__bio'
-          dangerouslySetInnerHTML={{ __html: profile.bio ||
-          `<i>(${profile.name} hasn't filled out a bio yet.)</i>` }} />
-        {posts && posts.length &&
-        <div className='profile__posts'>
+        <div className='profile__bio' dangerouslySetInnerHTML={{ __html: bio ||
+          `<i>(${name} hasn't filled out a bio yet.)</i>` }} />
+        {posts && posts.length && <div className='profile__posts'>
           <h4>Posts</h4>
-          {posts.map((post) =>
-            <p key={post._id} className='profile__posts'>
-              <a href={`/radioblog/${post.slug}`}>{post.title}</a>
+          {posts.map(({ slug, title, _id }) =>
+            <p key={_id} className='profile__posts'>
+              <a href={`/radioblog/${slug}`}>{title}</a>
             </p>)}
         </div> || null}
-        {(Meteor.user() && Meteor.user().hasRole('admin') &&
-          profile.userId !== Meteor.userId()) && (!profile.banned &&
-          <input id='profile__ban-user' type="button" value="Ban User"
-            onClick={toggleBan} /> ||
-          <input id='profile__unban-user' type="button"
-            value="Lift User Ban" onClick={toggleBan} />) || null}
+        {(Meteor.user() && Meteor.user().hasRole('admin') && userId !==
+          Meteor.userId()) && <input id='profile__ban-user' type="button"
+          value={banned ?  'Lift User Ban' : 'Ban User'} onClick={toggleBan} />
+          || null}
       </div>
     </div>];
   }
@@ -108,11 +90,11 @@ ProfilePage.propTypes = {
 };
 
 export default withTracker(() => {
-  var username = FlowRouter.getParam('username')
+  let username = FlowRouter.getParam('username');
 
   Meteor.subscribe('userData', username, {
     onReady: function() {
-      var user = Meteor.users.findOne({ username: username });
+      let user = Meteor.users.findOne({ username: username });
       if (user !== undefined) {
         Meteor.subscribe('profileData', user._id);
         Meteor.subscribe('showByUserId', user._id);
@@ -123,17 +105,15 @@ export default withTracker(() => {
 
   return {
     profile: (function() {
-      var username = FlowRouter.getParam('username'),
+      let username = FlowRouter.getParam('username'),
         user = Meteor.users.findOne({ username }),
         profile = user && Profiles.findOne({ userId: user._id });
 
-      if (profile !== undefined) {
-        return profile;
-      } else return false;
+      return profile || false;
     })(),
     posts: Posts.find({}, { sort: { submitted: -1 } }).fetch(),
     show: (function() {
-      var user = Meteor.users.findOne({
+      let user = Meteor.users.findOne({
         username: FlowRouter.getParam('username')
       });
       if (user) return Shows.findOne({ userId: user._id });

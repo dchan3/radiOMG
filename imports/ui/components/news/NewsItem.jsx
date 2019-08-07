@@ -7,7 +7,7 @@ export default function NewsItem({ item: {
   slug, body, summary, userId, category, submitted, thumbnail, photo, title,
   author
 } }) {
-  var path = getPathBySlug('/radioblog/:slug', slug),
+  let path = getPathBySlug('/radioblog/:slug', slug),
     synopsis = summary.length ?
       renderSummary(summary, 60) : renderSummary(body, 60),
     username = usernameById(userId),
@@ -49,4 +49,4 @@ export default function NewsItem({ item: {
 
 NewsItem.propTypes = {
   item: PropTypes.object
-}
+};

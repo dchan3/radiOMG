@@ -13,8 +13,8 @@ export default function GeneralHeader({ big, children }) {
 GeneralHeader.propTypes = {
   children: any,
   big: bool
-}
+};
 
 GeneralHeader.defaultProps = {
   big: false
-}
+};

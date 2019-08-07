@@ -29,17 +29,15 @@ function PlaylistSidebar({ ready }) {
       }).fetch();
     }
     var uniqDates = uniq(map(pluck(playlistDates, 'showDate'),
-      (date) => {
-        date.setSeconds(0);
-        date.setMilliseconds(0);
-        date.setHours(0);
-        date.setMinutes(0);
-        return date;
-      }), true, (date) => +date);
-
-    var a = [];
-    for (var p = 0; p < uniqDates.length; p++) {
-      var r = {};
+        (date) => {
+          date.setSeconds(0);
+          date.setMilliseconds(0);
+          date.setHours(0);
+          date.setMinutes(0);
+          return date;
+        }), true, (date) => +date), a = [];
+    for (let p = 0; p < uniqDates.length; p++) {
+      let r = {};
       r.date = uniqDates[p];
       r.shows = _.filter(playlistDates,
         (obj) => +obj.showDate === +uniqDates[p]);
@@ -52,9 +50,7 @@ function PlaylistSidebar({ ready }) {
     if (m2 === 59) {
       h2 = (h2 + 1) % 24;
     }
-    var ap = h1 > h2;
-    if (ap) ap = 'hA';
-    else ap = 'h';
+    var ap = h1 > h2 ? 'hA' : 'h';
     return `${moment(h1, 'HH').format(ap)}-${moment(h2, 'HH').format('hA')}`;
   }
 
@@ -86,7 +82,7 @@ function PlaylistSidebar({ ready }) {
     return (
       <div className='playlist__sidebar corner'>
         <h4 className='playlist__sidebar-header'>Browse Latest</h4>
-        {!!state.sidebar && state.sidebar.map(({ date, shows }) => [
+        {state.sidebar && state.sidebar.map(({ date, shows }) => [
           <hr />,
           <h4 className='playlist__sidebar-date'>
             {dateFormat(date)}
@@ -94,7 +90,7 @@ function PlaylistSidebar({ ready }) {
           shows.map(({ showId, spinPlaylistId, startTime, endTime, djName
           }) => {
             if (showId > -1) {
-              var { startMinute, startHour, endHour, endMinute, showName } =
+              let { startMinute, startHour, endHour, endMinute, showName } =
                 showById(showId);
               return <div><p className='playlist__sidebar-link'>
                 <a href={`/playlists/${spinPlaylistId}`} onClick={handleClick}>

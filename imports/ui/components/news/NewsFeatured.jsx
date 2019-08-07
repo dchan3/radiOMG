@@ -8,35 +8,28 @@ import { Meteor } from 'meteor/meteor';
 
 function NewsFeatured({ featuredPost, ready }) {
   if (ready && featuredPost) {
-    var { thumbnail, photo, slug, title, author, summary, userId, submitted } =
+    let { thumbnail, photo, slug, title, author, summary, userId, submitted } =
       featuredPost, path = getPathBySlug('/radioblog/:slug', slug),
       synopsis = renderSummary(summary, 60),
-      username = userId ?
-        usernameById(userId) : undefined,
+      username = userId ? usernameById(userId) : undefined,
       displayName = displayNameById(userId),
       timeDiff = timeDiffString(submitted);
 
     return <div className='news-list__featured'>
       <div className='news-list__featured-img'>
-        <img src=
-          {thumbnail || (photo && photo.url) || '/mstile-310x310.png'} />
+        <img src={thumbnail || (photo && photo.url) || '/mstile-310x310.png'} />
         <span className='purple-tag'>Featured</span>
       </div>
       <div className='news-list__featured-item'>
         <a href={`/radioblog/${slug}`}>
-          <h2 className='news-list__featured-title'>
-            {title}
-          </h2>
+          <h2 className='news-list__featured-title'>{title}</h2>
         </a>
         <p>{`${synopsis}  `}
-          <a className='purple-text' href={path}>
-            <i>Read On</i>
-          </a>
+          <a className='purple-text' href={path}><i>Read On</i></a>
         </p>
         <p className='news-list__byline'>{'by '}
           {username ? <a href={`/profile/${username}`}>
-            {displayName || username}</a> : author}{' / '}
-          {timeDiff}</p>
+            {displayName || username}</a> : author}{' / '}{timeDiff}</p>
       </div>
     </div>;
   }
@@ -46,12 +39,12 @@ function NewsFeatured({ featuredPost, ready }) {
 NewsFeatured.propTypes = {
   featuredPost: PropTypes.object,
   ready: PropTypes.bool
-}
+};
 
 export default withTracker(() => {
-  var s1 = Meteor.subscribe('latestFeaturedPost', {
+  let s1 = Meteor.subscribe('latestFeaturedPost', {
     onReady: function() {
-      var latestFeaturedPost =
+      let latestFeaturedPost =
         Posts.findOne({ approved: true, featured: true },
           { sort: { submitted: -1 } });
 

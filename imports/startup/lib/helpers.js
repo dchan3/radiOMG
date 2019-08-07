@@ -7,32 +7,33 @@ import { Meteor } from 'meteor/meteor';
 import { FlowRouter } from 'meteor/kadira:flow-router';
 import { $ } from 'meteor/jquery';
 
+function currentDay(row) {
+  var now = getLocalTime(), { showDate, startTime } = row;
+  return showDate.getYear() === now.year() &&
+    showDate.getMonth() === now.month() &&
+    showDate.getDate() === now.date() &&
+    parseInt(startTime.split(':')[0], 10) <= now.hour();
+}
+
 export const getLocalTime = function() {
   return moment.tz('Pacific/Honolulu');
-}
+};
 
 export const currentPlaylist = function() {
   return Playlists.find({
     $where: function() {
-      var now = getLocalTime();
-      return this.showDate.getYear() === now.year() &&
-             this.showDate.getMonth() === now.month() &&
-             this.showDate.getDate() === now.date() &&
-             parseInt(this.startTime.split(':')[0], 10) <= now.hour();
+      return currentDay(this);
     }
   }, { sort: { startTime: -1 } });
 };
 
 export const currentPlaylistFindOne = function() {
-  var now = getLocalTime();
-  var playlist = Playlists.findOne({
-    $where: function() {
-      return this.showDate.getYear() === now.year() &&
-             this.showDate.getMonth() === now.month() &&
-             this.showDate.getDate() === now.date() &&
-             parseInt(this.startTime.split(':')[0], 10) <= now.hour();
-    }
-  }, { sort: { startTime: -1 } });
+  var now = getLocalTime(),
+    playlist = Playlists.findOne({
+      $where: function() {
+        return currentDay(this);
+      }
+    }, { sort: { startTime: -1 } });
 
   if (playlist &&
     now.getHours() >= parseInt(playlist.endTime.split(':')[0], 10)) {
@@ -44,29 +45,26 @@ export const currentPlaylistFindOne = function() {
 };
 
 export const currentShow = function() {
-  var now = getLocalTime();
-  var show = Shows.findOne({ active: true, startDay: now.day(),
-    startHour: { $lte: now.hour() },
-    endDay: now.day() }, { sort: { startHour: -1 } });
+  let now = getLocalTime(),
+    show = Shows.findOne({ active: true, startDay: now.day(),
+      startHour: { $lte: now.hour() },
+      endDay: now.day() }, { sort: { startHour: -1 } });
 
   if (show === undefined) return undefined;
 
-  var actualEndMinute = show.endMinute, actualEndHour = show.endHour,
-    actualStartMinute = show.startMinute;
+  let { endMinute, endHour, startMinute } = show;
 
-  if (actualStartMinute === 1) {
-    actualStartMinute--;
+  if (startMinute === 1) { startMinute--; }
+
+  if (endMinute === 59) {
+    endMinute = 0;
+    endHour = (endHour + 1) % 24;
   }
 
-  if (actualEndMinute === 59) {
-    actualEndMinute = 0;
-    actualEndHour = (actualEndHour + 1) % 24;
-  }
-
-  if (actualEndHour > 0 && now.hour() < actualEndHour) {
+  if (endHour && now.hour() < endHour) {
     return show;
   }
-  else if (actualEndHour === 0 && now.hour() < 24) {
+  else if (endHour === 0 && now.hour() < 24) {
     return show;
   }
   else {
@@ -75,15 +73,14 @@ export const currentShow = function() {
 };
 
 export const nextShow = function() {
-  var now = getLocalTime();
-  var sameDay = Shows.findOne({ active: true, startDay: now.day(),
-    startHour: { $gt: now.hour() }, endDay: now.day() });
-  var tmr1 = Shows.findOne({ active: true, startDay: {
-    $gte: (now.day() + 1) % 7 }
-  }, { sort: { startDay: 1, startHour: 1, startMinute: 1 } });
-  var tmr2 = Shows.findOne({ active: true, startDay: { $gte: 0 } },
-    { sort: { startDay: 1, startHour: 1, startMinute: 1 } });
-
+  let now = getLocalTime(),
+    sameDay = Shows.findOne({ active: true, startDay: now.day(),
+      startHour: { $gt: now.hour() }, endDay: now.day() }),
+    tmr1 = Shows.findOne({ active: true, startDay: {
+      $gte: (now.day() + 1) % 7 }
+    }, { sort: { startDay: 1, startHour: 1, startMinute: 1 } }),
+    tmr2 = Shows.findOne({ active: true, startDay: { $gte: 0 } },
+      { sort: { startDay: 1, startHour: 1, startMinute: 1 } });
   return sameDay || tmr1 || tmr2;
 };
 
@@ -93,17 +90,17 @@ export const thumbnailUrl = function(url, maxW) {
   });
   return `https://s3-${Meteor.settings.awsRegion}.amazonaws.com/${
     Meteor.settings.bucket}/thumbs/${url.split('/').slice(-1)[0]}.jpg`;
-}
+};
 
 export const displayNameById = (userId) => {
-  var profile = Profiles.findOne({ userId: userId });
+  let profile = Profiles.findOne({ userId });
   if (profile) return profile.name;
-}
+};
 
 export const usernameById = (userId) => {
   var user = Meteor.users.findOne({ _id: userId });
   if (user) return user.username;
-}
+};
 
 export const usernameFromDisplayName = (name) => {
   var profile = Profiles.findOne({ name: name });
@@ -128,14 +125,14 @@ export const renderSummary = function(summary, numWords) {
   if (summary.indexOf('<') > -1) {
     summary = $.parseHTML(summary).map(node => node.innerText).join(' ');
   }
-  var regex = new RegExp(`(([^\\s]+\\s\\s*){${numWords}})(.*)`);
-  var match = regex.exec(summary);
+  var regex = new RegExp(`(([^\\s]+\\s\\s*){${numWords}})(.*)`),
+    match = regex.exec(summary);
   return `${match && match[1] || summary}…`;
-}
+};
 
 export const getPathBySlug = function(template, slug) {
   return FlowRouter.path(template, { slug: slug });
-}
+};
 
 export const pages = function(items, per) {
   var retval = [], page = 0, counter = 0;
@@ -151,7 +148,7 @@ export const pages = function(items, per) {
     }
   }
   return retval;
-}
+};
 
 export const requestSpinData = function(playlistId, cb) {
   if (playlistId < 10000) {
@@ -160,4 +157,4 @@ export const requestSpinData = function(playlistId, cb) {
   else {
     Meteor.call('getPlaylistSpins', playlistId, cb);
   }
-}
+};

@@ -1,5 +1,5 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+import { bool, array } from 'prop-types';
 import Playlists from '../../../api/playlists/playlists_collection.js';
 import Shows from '../../../api/shows/shows_collection.js';
 import { withTracker } from 'meteor/react-meteor-data';
@@ -42,12 +42,12 @@ function MusicPlaylists({ ready, playlists }){
 }
 
 MusicPlaylists.propTypes = {
-  ready: PropTypes.bool,
-  playlists: PropTypes.array
-}
+  ready: bool,
+  playlists: array
+};
 
 export default withTracker(() => {
-  var s1 = Meteor.subscribe('playlists'), s2 = Meteor.subscribe('shows');
+  let s1 = Meteor.subscribe('playlists'), s2 = Meteor.subscribe('shows');
 
   return {
     ready: s1.ready() && s2.ready(),

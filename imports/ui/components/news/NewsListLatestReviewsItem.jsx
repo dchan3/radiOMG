@@ -1,20 +1,21 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+import { object } from 'prop-types';
 import { getPathBySlug } from '../../../startup/lib/helpers.js';
 
-export default function NewsListLatestReviewsItem({ review }) {
+export default function NewsListLatestReviewsItem({ review: {
+  _id, slug, image, artist, releaseName
+} }) {
   return (
-    <div className='news-list__latest-review' key={review._id}>
-      <a href={getPathBySlug('/reviews/:slug', review.slug)}>
-        <img src={(review.image && review.image.url) ||
-          '/mstile-310x310.png'} />
-        <p><b>{review.artist}</b></p>
-        <p>{review.releaseName}</p>
+    <div className='news-list__latest-review' key={_id}>
+      <a href={getPathBySlug('/reviews/:slug', slug)}>
+        <img src={image && image.url || '/mstile-310x310.png'} />
+        <p><b>{artist}</b></p>
+        <p>{releaseName}</p>
       </a>
     </div>
   );
 }
 
 NewsListLatestReviewsItem.propTypes = {
-  review: PropTypes.object
-}
+  review: object
+};

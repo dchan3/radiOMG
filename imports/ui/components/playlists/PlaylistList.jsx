@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import PropTypes from 'prop-types';
+import { bool, object } from 'prop-types';
 import { currentPlaylistFindOne, showByShowId, requestSpinData } from
   '../../../startup/lib/helpers.js';
 import { Meteor } from 'meteor/meteor';
@@ -95,6 +95,11 @@ function PlaylistList({ currentPlaylist, ready }) {
       });
     }
     var latestShow = showByShowId(currentPlaylist.showId);
+
+    if (latestShow) {
+      var { thumbnail, slug, showName, synopsis } = latestShow;
+    }
+
     return [
       <Metamorph
         title="Show Playlists - KTUH FM Honolulu | Radio for the People"
@@ -102,23 +107,22 @@ function PlaylistList({ currentPlaylist, ready }) {
         image='https://ktuh.org/img/ktuh-logo.jpg' />,
       <h2 className='general__header' key='header-title'>Playlists</h2>,
       <div className='playlist-list__latest' key='playlist-content'>
-        {latestShow && latestShow.thumbnail && (
-          <a href={`/shows/${latestShow.slug}`}>
+        {latestShow && thumbnail && (
+          <a href={`/shows/${slug}`}>
             <img className='playlist__show-image'
-              src={latestShow.thumbnail} />
+              src={thumbnail} />
           </a>)}
         <h5 className='playlist-list__current'>
           {isPlaylistCurrent() ?
             'CURRENT PLAYLIST' : 'LAST LOGGED PLAYLIST'}
         </h5>
         <h3 className='playlist-list__show-name'>
-          {latestShow && ((latestShow.slug && latestShow.showName) &&
-              <a href={`/shows/${latestShow.slug}`}>
-                {latestShow.showName}
-              </a> || latestShow.showName || 'Sub Show')}
+          {latestShow && ((slug && showName) &&
+              <a href={`/shows/${slug}`}>
+                {showName}
+              </a> || showName || 'Sub Show')}
         </h3>
-        {latestShow && latestShow.synopsis &&
-          <p>{latestShow.synopsis}</p> || null}
+        {latestShow && synopsis && <p>{synopsis}</p> || null}
         <h5 className='playlist-list__show-host'>
           {latestShow && renderHost(latestShow)}
         </h5>
@@ -133,9 +137,9 @@ function PlaylistList({ currentPlaylist, ready }) {
 }
 
 PlaylistList.propTypes = {
-  currentPlaylist: PropTypes.object,
-  ready: PropTypes.bool
-}
+  currentPlaylist: object,
+  ready: bool
+};
 
 export default withTracker(() => {
   var s1 = Meteor.subscribe('activeShows'),

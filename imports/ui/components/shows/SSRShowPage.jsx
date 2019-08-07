@@ -18,9 +18,7 @@ function SSRShowPage({ show }) {
       endHour = (endHour + 1) % 24;
       endMinute = 0;
     }
-    var ap = startHour > endHour;
-    if (ap) ap = 'h:mmA';
-    else ap = 'h:mm';
+    let ap = startHour > endHour ? 'h:mmA' : 'h:mm';
     return `${momentUtil(moment(momentUtil(`${startHour}:${startMinute}`,
       'HH:mm'),'Pacific/Honolulu')).format(ap)
     }-${momentUtil(moment(momentUtil(`${endHour}:${endMinute}`, 'HH:mm'),
@@ -67,6 +65,6 @@ function SSRShowPage({ show }) {
 
 SSRShowPage.propTypes = {
   show: object
-}
+};
 
 export default (show) => <SSRShowPage show={show} />;

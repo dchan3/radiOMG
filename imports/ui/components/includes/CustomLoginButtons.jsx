@@ -25,7 +25,7 @@ function CustomLoginButtons({ currentUser }) {
     }, [ state, dispatch ] = useReducer(reducer, initialState)
 
   function handleView() {
-    var { username } = currentUser;
+    let { username } = currentUser;
     FlowRouter.go('profilePage', { username });
   }
 
@@ -355,7 +355,7 @@ function CustomLoginButtons({ currentUser }) {
 
 CustomLoginButtons.propTypes = {
   currentUser: PropTypes.object
-}
+};
 
 export default withTracker(() => {
   return {

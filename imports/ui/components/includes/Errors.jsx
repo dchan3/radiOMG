@@ -55,12 +55,12 @@ function ErrorsBox({ notifications, errors }) {
 
 Error.propTypes = {
   error: PropTypes.object
-}
+};
 
 ErrorsBox.propTypes = {
   notifications: PropTypes.array,
   errors: PropTypes.array
-}
+};
 
 export default withTracker(() => {
   Meteor.subscribe('notifications');
