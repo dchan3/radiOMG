@@ -64,7 +64,7 @@ function CustomLoginButtons({ currentUser }) {
       if (username.length < 3)
         return;
       else
-        loginSelector = { username: username };
+        loginSelector = { username };
     } else if (email !== null) {
       if (!email.includes('@'))
         return;

@@ -1,6 +1,6 @@
 accounts-base@1.4.4
 accounts-facebook@1.3.2
-accounts-google@1.3.2
+accounts-google@1.3.3
 accounts-oauth@1.1.16
 accounts-password@1.5.1
 aldeed:autoform@5.8.1
@@ -14,7 +14,7 @@ anti:i18n@0.4.3
 autoupdate@1.6.0
 babel-compiler@7.3.4
 babel-runtime@1.3.0
-base64@1.0.11
+base64@1.0.12
 binary-heap@1.0.11
 blaze@2.3.3
 blaze-html-templates@1.1.2
@@ -88,7 +88,7 @@ modern-browsers@0.1.4
 modules@0.13.0
 modules-runtime@0.10.3
 momentjs:moment@2.17.1
-mongo@1.6.2
+mongo@1.6.3
 mongo-decimal@0.1.1
 mongo-dev-server@1.1.0
 mongo-id@1.0.7
@@ -96,7 +96,7 @@ mpowaga:autoform-summernote@0.4.2
 nicolaslopezj:options@1.0.1
 nicolaslopezj:reactive-templates@1.2.1
 nicolaslopezj:roles@2.6.6
-nicolaslopezj:router-layer@0.0.11
+nicolaslopezj:router-layer@0.1.0
 nicolaslopezj:tabular-materialize@1.4.1_4
 npm-bcrypt@0.9.3
 npm-mongo@3.1.2

@@ -1,8 +1,8 @@
-import React, { useState, forwardRef } from 'react';
+import React, { useState } from 'react';
 import { scorpius } from 'meteor/scorpiusjs:core';
 import { Bert } from 'meteor/themeteorchef:bert';
 
-function ScorpiusImageUpload({ value, onChange, label }, ref) {
+function ScorpiusImageUpload({ value, onChange, label }) {
   let [state, setState] = useState({
     value, ready: true
   });
@@ -38,7 +38,7 @@ function ScorpiusImageUpload({ value, onChange, label }, ref) {
   }
 
   return (
-    <div ref={ref}>
+    <div>
       <p>{label}</p>
       <div><img id="urlImage" src={state.value} /></div>
       <input type="file" onChange={(event) => handleChange(event)} />
@@ -47,4 +47,4 @@ function ScorpiusImageUpload({ value, onChange, label }, ref) {
   );
 }
 
-export default forwardRef(ScorpiusImageUpload);
+export default ScorpiusImageUpload;

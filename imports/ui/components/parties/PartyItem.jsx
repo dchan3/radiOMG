@@ -1,5 +1,5 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+import { object } from 'prop-types';
 
 export default function PartyItem({ party: {
   title, slug, thumbnail, flyerFront } }) {
@@ -14,5 +14,5 @@ export default function PartyItem({ party: {
 }
 
 PartyItem.propTypes = {
-  party: PropTypes.object
-}
+  party: object
+};

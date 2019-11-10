@@ -1,32 +1,28 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Meteor } from 'meteor/meteor';
-import { withTracker } from 'meteor/react-meteor-data';
-import Comments from '../../../api/comments/comments_collection.js';
-import CommentItem from '../comments/CommentItem.jsx';
-import CommentSubmit from '../comments/CommentSubmit.jsx';
 import Parties from '../../../api/parties/parties_collection.js';
 import { FlowRouter } from 'meteor/kadira:flow-router';
 import { Metamorph } from 'react-metamorph';
 import { Bert } from 'meteor/themeteorchef:bert';
 import { default as moment } from 'moment';
 
-function PartyPage({ ready, party, comments }) {
+function PartyPage() {
   function time(t) {
     return moment(t).format('dddd, MMMM Do YYYY, h:mm a');
   }
 
   function upvoted(upvoters) {
+    if (!Meteor.user()) return '';
+
     var { username } = Meteor.user();
     var a = upvoters || [];
     var i = a.indexOf(username);
-    var r = '';
 
-    if (i >= 0) {
-      r = 'upvoted';
+    if (i >= -1) {
+      return 'upvoted';
     }
-
-    return r;
+    else return '';
   }
 
   function handleClickStar() {
@@ -40,10 +36,28 @@ function PartyPage({ ready, party, comments }) {
     }
   }
 
-  if (ready) {
+  let [state, setState] = useState({
+    party: null
+  });
+
+  useEffect(function() {
+    var slug = FlowRouter.getParam('slug');
+    Meteor.subscribe('singleParty', slug, {
+      onReady: function () {
+        setState({
+          party: Parties.findOne({
+            slug: FlowRouter.getParam('slug'),
+            approved: true
+          }),
+        });
+      }
+    });
+  }, []);
+
+  if (state.party) {
     var { title, thumbnail, summary, flyerFront, thumbnailBack, flyerBack,
       location, upvoters, tags, startTime, description
-    } =  party;
+    } = state.party;
 
     return [
       <Metamorph title={`${title} - KTUH FM Honolulu | Radio for the People`}
@@ -80,15 +94,6 @@ function PartyPage({ ready, party, comments }) {
       </div>,
       <div className='comments news-item'>
         <h3 className='comments__header'>Comments</h3>
-        {comments.length &&
-          <ul className='comments__list'>
-            {comments.map((comment) =>
-              <CommentItem comment={comment}/>)}
-          </ul> || null}
-        {Meteor.user() && <CommentSubmit />  ||
-            <p className='comments__text'>
-              <i>Please log in to leave a comment.</i>
-            </p>}
       </div>]
   }
   else return null;
@@ -100,18 +105,4 @@ PartyPage.propTypes = {
   comments: PropTypes.array
 }
 
-export default withTracker(() => {
-  var slug = FlowRouter.getParam('slug'),
-    s0, s1 = Meteor.subscribe('singleParty', slug, {
-      onReady: function () {
-        var post = Parties.findOne({ slug, approved: true });
-        if (post) s0 = Meteor.subscribe('comments', post._id);
-      }
-    });
-
-  return {
-    ready: s1.ready() && (s0 !== undefined && s0.ready() || true),
-    party: Parties.findOne({ slug: FlowRouter.getParam('slug') }),
-    comments: Comments.find().fetch()
-  };
-})(PartyPage);
+export default PartyPage;

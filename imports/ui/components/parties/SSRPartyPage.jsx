@@ -54,7 +54,7 @@ function SSRPartyPage({ party, comments }) {
 SSRPartyPage.propTypes = {
   party: PropTypes.object,
   comments: PropTypes.array
-}
+};
 
 export default (party) => <SSRPartyPage party={party}
   comments={Comments.find({ postId: party._id })} />;

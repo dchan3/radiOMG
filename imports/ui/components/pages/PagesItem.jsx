@@ -1,14 +1,28 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+import React, { useEffect, useState } from 'react';
 import { Meteor } from 'meteor/meteor';
 import Pages from '../../../api/pages/pages_collection.js';
-import { withTracker } from 'meteor/react-meteor-data';
 import { Metamorph } from 'react-metamorph';
 import { FlowRouter } from 'meteor/kadira:flow-router';
 
-function PagesItem({ ready, page }) {
-  if (ready) {
-    let { title, body } = page;
+function PagesItem() {
+  let [state, setState] = useState({
+    page: null
+  });
+
+  useEffect(function() {
+    let slug = FlowRouter.getParam('slug');
+    Meteor.subscribe('singlePage', slug, {
+      onReady: function() {
+        setState({ page: Pages.findOne({ slug: slug, isDraft: false }) });
+      },
+      onStop: function() {
+        FlowRouter.go('/not-found');
+      }
+    });
+  }), [state.page];
+
+  if (state.page) {
+    let { title, body } = state.page;
     return [
       <Metamorph title={`${title} - KTUH FM Honolulu | Radio for the People`}
         image='https://ktuh.org/img/ktuh-logo.jpg' description={`${
@@ -20,21 +34,4 @@ function PagesItem({ ready, page }) {
   else return null;
 }
 
-PagesItem.propTypes = {
-  ready: PropTypes.bool,
-  page: PropTypes.object
-};
-
-export default withTracker(() => {
-  let slug = FlowRouter.getParam('slug'),
-    s1 = Meteor.subscribe('singlePage', slug, {
-      onStop: function() {
-        FlowRouter.go('/not-found');
-      }
-    });
-
-  return {
-    ready: s1.ready(),
-    page: Pages.findOne({ slug: slug, isDraft: false })
-  }
-})(PagesItem);
+export default PagesItem;

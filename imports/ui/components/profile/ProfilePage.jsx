@@ -1,16 +1,14 @@
-import React, { useEffect } from 'react';
-import { object, array } from 'prop-types';
+import React, { useEffect, useState } from 'react';
 import { Meteor } from 'meteor/meteor';
 import { FlowRouter } from 'meteor/kadira:flow-router';
 import Posts from '../../../api/posts/posts_collection.js';
 import Profiles from '../../../api/users/profiles_collection.js';
 import Shows from '../../../api/shows/shows_collection.js';
 import { Bert } from 'meteor/themeteorchef:bert';
-import { withTracker } from 'meteor/react-meteor-data';
 import { Metamorph } from 'react-metamorph';
 import ProfileSocialLink from './ProfileSocialLink.jsx';
 
-function ProfilePage({ profile, show, posts }) {
+function ProfilePage() {
   function toggleBan() {
     if (Meteor.user().hasRole('admin')) {
       let username = FlowRouter.getParam('username'),
@@ -24,10 +22,42 @@ function ProfilePage({ profile, show, posts }) {
 
   useEffect(() => {}, [Meteor.user() && Meteor.user().hasRole('admin')]);
 
-  if (profile && !profile.banned || Meteor.user() !== null &&
-    Meteor.user().hasRole('admin')) {
+  let [state, setState] = useState({
+    profile: null,
+    posts: [],
+    show: null
+  });
+
+  useEffect(function() {
+    let username = FlowRouter.getParam('username');
+
+    Meteor.subscribe('userData', username, {
+      onReady: function() {
+        let user = Meteor.users.findOne({ username: username });
+        if (user !== undefined) {
+          Meteor.subscribe('profileData', user._id, { onReady: function() {
+            Meteor.subscribe('showByUserId', user._id, { onReady: function() {
+              Meteor.subscribe('postsByUser', username, {
+                onReady: function() {
+                  setState({
+                    profile: Profiles.findOne({ userId: user._id }),
+                    posts: Posts.find({}, { sort: { submitted: -1 } }).fetch(),
+                    show: Shows.findOne({ userId: user._id })
+                  });
+                }
+              });
+            }
+            });
+          }
+          });
+        }
+      }
+    });
+  }, [state.profile]);
+
+  if (state.profile && !state.profile.banned) {
     let { name, photo, userId, thumbnail, website, twitter, facebook,
-      snapchat, instagram, soundcloud, banned, bio } = profile;
+      snapchat, instagram, soundcloud, banned, bio } = state.profile;
     return [<Metamorph title={`${name
     }'s Profile - KTUH FM Honolulu | Radio for the People`}
     description={`${name}'s Profile`} image={photo && photo.url ||
@@ -55,18 +85,18 @@ function ProfilePage({ profile, show, posts }) {
               ['http://snapchat.com/add/', snapchat, 'snapchat']
             ].map((params) => ProfileSocialLink(...params))}
           </div>) || null}
-        {!!show &&
+        {!!state.show &&
           <div className='profile__show-link'>
             <a className='color-button white-button profile__show-button'
-              href={`/shows/${show.slug}`}>View Show Page</a>
+              href={`/shows/${state.show.slug}`}>View Show Page</a>
           </div> || null}
       </div>
       <div className='profile__info'>
         <div className='profile__bio' dangerouslySetInnerHTML={{ __html: bio ||
           `<i>(${name} hasn't filled out a bio yet.)</i>` }} />
-        {posts && posts.length && <div className='profile__posts'>
+        {state.posts && state.posts.length && <div className='profile__posts'>
           <h4>Posts</h4>
-          {posts.map(({ slug, title, _id }) =>
+          {state.posts.map(({ slug, title, _id }) =>
             <p key={_id} className='profile__posts'>
               <a href={`/radioblog/${slug}`}>{title}</a>
             </p>)}
@@ -83,41 +113,4 @@ function ProfilePage({ profile, show, posts }) {
   }
 }
 
-ProfilePage.propTypes = {
-  profile: object,
-  show: object,
-  posts: array
-};
-
-export default withTracker(() => {
-  let username = FlowRouter.getParam('username');
-
-  Meteor.subscribe('userData', username, {
-    onReady: function() {
-      let user = Meteor.users.findOne({ username: username });
-      if (user !== undefined) {
-        Meteor.subscribe('profileData', user._id);
-        Meteor.subscribe('showByUserId', user._id);
-        Meteor.subscribe('postsByUser', username);
-      }
-    }
-  });
-
-  return {
-    profile: (function() {
-      let username = FlowRouter.getParam('username'),
-        user = Meteor.users.findOne({ username }),
-        profile = user && Profiles.findOne({ userId: user._id });
-
-      return profile || false;
-    })(),
-    posts: Posts.find({}, { sort: { submitted: -1 } }).fetch(),
-    show: (function() {
-      let user = Meteor.users.findOne({
-        username: FlowRouter.getParam('username')
-      });
-      if (user) return Shows.findOne({ userId: user._id });
-      else return false;
-    })()
-  };
-})(ProfilePage);
+export default ProfilePage;

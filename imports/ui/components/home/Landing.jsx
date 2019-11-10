@@ -115,7 +115,7 @@ function Landing({ ready, nowPlaying }) {
         global.player.getSrc() === 'http://stream.ktuh.org:8000/stream-mp3')
           || false
     });
-  });
+  }, []);
 
   function background() {
     var h = getLocalTime().hour();

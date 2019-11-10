@@ -1,6 +1,4 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import { withTracker } from 'meteor/react-meteor-data';
+import React, { useState, useEffect } from 'react';
 import { Meteor } from 'meteor/meteor';
 import Reviews from '../../../api/reviews/reviews_collection.js';
 import { default as moment } from 'moment';
@@ -8,16 +6,42 @@ import { displayNameById, usernameById } from '../../../startup/lib/helpers.js';
 import { Metamorph } from 'react-metamorph';
 import { FlowRouter } from 'meteor/kadira:flow-router';
 
-function ReviewPage({ ready, review }) {
+function ReviewPage() {
+  let [state, setState] = useState({
+    review: null
+  });
+
+  useEffect(function() {
+    var slug = FlowRouter.getParam('slug');
+    Meteor.subscribe('singleReview', slug, {
+      onReady: function() {
+        var review = Reviews.findOne({ slug: slug });
+        if (!review) {
+          FlowRouter.go('/not-found');
+          return;
+        }
+        Meteor.subscribe('userById', review.userId, {
+          onReady: function() {
+            Meteor.subscribe('profileData', review.userId, {
+              onReady: function() {
+                setState({ review: Reviews.findOne({ slug: slug }) });
+              }
+            });
+          }
+        });
+      }
+    });
+  }, [state.review]);
+
   function formattedRating(rating) {
     if (rating % 1 !== .5) return `${Number(rating).toString()}.0`;
     else return rating;
   }
 
-  if (ready) {
+  if (state.review) {
     let {
       releaseName, artist, thumbnail, image, rating, userId, submitted, body
-    } = review;
+    } = state.review;
     return [
       <Metamorph title={`Review of "${releaseName} by ${
         artist} - KTUH FM Honolulu |Radio for the People`}
@@ -50,28 +74,4 @@ function ReviewPage({ ready, review }) {
   else return null;
 }
 
-ReviewPage.propTypes = {
-  ready: PropTypes.bool,
-  review: PropTypes.object
-}
-
-export default withTracker(() => {
-  var slug = FlowRouter.getParam('slug');
-  var s2, s3, s1 = Meteor.subscribe('singleReview', slug, {
-    onReady: function() {
-      var review = Reviews.findOne({ slug: slug });
-      if (!review) {
-        FlowRouter.go('/not-found');
-        return;
-      }
-      s2 = Meteor.subscribe('userById', review.userId);
-      s3 = Meteor.subscribe('profileData', review.userId);
-    }
-  });
-
-  return {
-    ready: s1.ready() &&
-      (s2 && s2.ready() || true) && (s3 && s3.ready() || true),
-    review: Reviews.findOne({ slug: slug })
-  };
-})(ReviewPage);
+export default ReviewPage;

@@ -7,7 +7,7 @@ export default function Footer() {
       '111;&#102;&#102;&#105;&#99;&#101;&#64;&#107;&#116;&#117;&#104;&#46;' +
       `&#111;&#114;&#103;'>${[6,0,0,5,3,9,22,24,4,1,23].map(
         (i) => 'function(e) { return "@hk" + e; })'.split('')[i]).join('')
-      }.org</a>'}`;
+      }.org</a>`;
   }
 
   return <div className='footer'>

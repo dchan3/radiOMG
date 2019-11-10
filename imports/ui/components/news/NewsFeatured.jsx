@@ -1,15 +1,33 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import Posts from '../../../api/posts/posts_collection.js';
 import { usernameById, displayNameById, timeDiffString, renderSummary,
   getPathBySlug } from '../../../startup/lib/helpers.js';
-import { withTracker } from 'meteor/react-meteor-data';
 import { Meteor } from 'meteor/meteor';
 
-function NewsFeatured({ featuredPost, ready }) {
-  if (ready && featuredPost) {
+function NewsFeatured() {
+  let [state, setState] = useState({
+    featuredPost: null
+  });
+
+  useEffect(function() {
+    Meteor.subscribe('latestFeaturedPost', {
+      onReady: function() {
+        let latestFeaturedPost =
+          Posts.findOne({ approved: true, featured: true },
+            { sort: { submitted: -1 } });
+
+        if (latestFeaturedPost) {
+          Meteor.subscribe('profileData', latestFeaturedPost.userId);
+          setState({ featuredPost: latestFeaturedPost })
+        }
+      }
+    });
+  }, [state.featuredPost]);
+
+  if (state.featuredPost) {
     let { thumbnail, photo, slug, title, author, summary, userId, submitted } =
-      featuredPost, path = getPathBySlug('/radioblog/:slug', slug),
+      state.featuredPost, path = getPathBySlug('/radioblog/:slug', slug),
       synopsis = renderSummary(summary, 60),
       username = userId ? usernameById(userId) : undefined,
       displayName = displayNameById(userId),
@@ -41,21 +59,4 @@ NewsFeatured.propTypes = {
   ready: PropTypes.bool
 };
 
-export default withTracker(() => {
-  let s1 = Meteor.subscribe('latestFeaturedPost', {
-    onReady: function() {
-      let latestFeaturedPost =
-        Posts.findOne({ approved: true, featured: true },
-          { sort: { submitted: -1 } });
-
-      if (latestFeaturedPost)
-        Meteor.subscribe('profileData', latestFeaturedPost.userId);
-    }
-  });
-
-  return {
-    ready: s1.ready(),
-    featuredPost: Posts.findOne({ approved: true, featured: true },
-      { sort: { submitted: -1 } })
-  };
-})(NewsFeatured);
+export default NewsFeatured;

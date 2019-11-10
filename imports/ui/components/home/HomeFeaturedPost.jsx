@@ -1,13 +1,27 @@
-import React from 'react';
-import { bool, object } from 'prop-types';
+import React, { useState, useEffect } from 'react';
 import { renderSummary } from '../../../startup/lib/helpers.js';
-import { withTracker } from 'meteor/react-meteor-data';
 import Posts from '../../../api/posts/posts_collection.js';
 import { Meteor } from 'meteor/meteor';
 
-function HomeFeaturedPost({ ready, post }) {
-  if (ready && post) {
-    var { thumbnail, photo, category, slug, title, summary } = post
+function HomeFeaturedPost() {
+  let [state, setState] = useState({
+    post: null
+  })
+
+  useEffect(function() {
+    Meteor.subscribe('latestFeaturedPost', { onReady:
+      function() {
+        setState({ post: Posts.findOne({
+          approved: true, featured: true
+        }, {
+          sort: { submitted: -1 }
+        }) });
+      }
+    });
+  }, [state.post]);
+
+  if (state.post) {
+    var { thumbnail, photo, category, slug, title, summary } = state.post;
     return <div className='home__featured'>
       <div className='home__featured-content'>
         <div className='home__featured-photo'>
@@ -27,20 +41,4 @@ function HomeFeaturedPost({ ready, post }) {
   else return null;
 }
 
-HomeFeaturedPost.propTypes = {
-  ready: bool,
-  post: object
-}
-
-export default withTracker(() => {
-  var s1 = Meteor.subscribe('latestFeaturedPost');
-
-  return {
-    ready: s1.ready(),
-    post: Posts.findOne({
-      approved: true, featured: true
-    }, {
-      sort: { submitted: -1 }
-    })
-  };
-})(HomeFeaturedPost);
+export default HomeFeaturedPost;

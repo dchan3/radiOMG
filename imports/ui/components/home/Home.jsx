@@ -69,7 +69,7 @@ export default function Home() {
       window.scroll(0, 0);
       window.onscroll = null;
     }
-  });
+  }, []);
 
   return [<Metamorph title='KTUH FM Honolulu | Radio for the People'
     image="https://ktuh.org/img/ktuh-logo.jpg"

@@ -8,17 +8,30 @@ import { Session } from 'meteor/session';
 import Comments from '../../../api/comments/comments_collection.js';
 import CommentItem from '../comments/CommentItem.jsx';
 import CommentSubmit from '../comments/CommentSubmit.jsx';
-import { withTracker } from 'meteor/react-meteor-data';
 import { default as momentUtil } from 'moment';
 import moment from 'moment-timezone';
 import { Metamorph } from 'react-metamorph';
 import { FlowRouter } from 'meteor/kadira:flow-router'
 import { requestSpinData } from '../../../startup/lib/helpers.js';
 
-function PlaylistPage({ playlist, ready }) {
-  let [state, setState] = useState({
-    playlistLoaded: false
-  });
+function PlaylistPage() {
+  let [playlistLoaded, setPlaylistLoaded] = useState(false),
+    [state, setState] = useState({
+      playlist: null
+    });
+
+  useEffect(function() {
+    var id = parseInt(FlowRouter.getParam('id'), 10);
+    Meteor.subscribe('playlist', id, {
+      onReady: function() {
+        var playlist = Playlists.findOne({ spinPlaylistId: id });
+        if (playlist)
+          Meteor.subscribe('comments', playlist._id);
+        setState({ playlist });
+      }
+    });
+    Meteor.subscribe('activeShows');
+  }, [state.playlist]);
 
   function showDateOfLatestPlaylist(date) {
     return momentUtil(moment(date).tz('Pacific/Honolulu')).format('LL');
@@ -34,61 +47,57 @@ function PlaylistPage({ playlist, ready }) {
   }
 
   function showIfAny() {
-    return Shows.findOne({ showId: playlist.showId });
+    return Shows.findOne({ showId: state.playlist.showId });
   }
 
   function comments() {
-    return Comments.find({ postId: playlist.showId }).fetch();
+    return Comments.find({ postId: state.playlist.showId }).fetch();
   }
 
   useEffect(function() {
-    if (state.playlistLoaded) {
-      setState({ playlistLoaded: false });
+    if (playlistLoaded) {
+      setPlaylistLoaded(false);
     }
-  }, [playlist, state.playlistLoaded]);
+  }, [state.playlist, playlistLoaded]);
 
-  if (ready) {
-    let { djName, showDate, spinPlaylistId } = playlist,
+  if (state.playlist) {
+    let { djName, showDate, spinPlaylistId } = state.playlist,
       commentary = comments(), show = showIfAny(),
       dateOfLatest = showDateOfLatestPlaylist(showDate),
       showStr = show ? `${show.showName} - ${dateOfLatest}` :
-        `${showTime(playlist)} Sub Show with ${djName}`;
-    if (!state.playlistLoaded) {
+        `${showTime(state.playlist)} Sub Show with ${djName}`;
+    if (!playlistLoaded) {
       requestSpinData(spinPlaylistId, (error, result) => {
         if (!error && result) {
           Session.set('currentPlaylist',
             spinPlaylistId > 10000 ? result.data.items :
               JSON.parse(result.content).results);
           Session.set('playlistViewing', spinPlaylistId);
-          setState({ playlistLoaded: true });
+          setPlaylistLoaded(true);
         }
       });
     }
 
-    if (show) {
-      var { thumbnail, slug, showName, featuredImage } = show;
-    }
-
     return [
       <Metamorph title={`${showStr} - KTUH FM Honolulu | Radio for the People`}
-        description={showStr} image={thumbnail ||
+        description={showStr} image={show.thumbnail ||
           'https://ktuh.org/img/ktuh-logo.png'} />,
       <h2 className='general__header'>
         {show &&
-            [<a href={`/shows/${slug}`}>
-              {showName}
+            [<a href={`/shows/${show.slug}`}>
+              {show.showName}
             </a>, ` playlist - ${
               showDateOfLatestPlaylist(showDate)}`] ||
-            [`${showTime(playlist)} w/ ${djName
+            [`${showTime(state.playlist)} w/ ${djName
             } playlist - ${showDateOfLatestPlaylist(showDate)}`]}
       </h2>,
       <div className='playlist__link'>
         <a href='/playlists' className='back-to'>← Back to Playlists</a>
       </div>,
       <div className='playlist__content'>
-        {show ? <a href={`/shows/${slug}`}>
-          <img className='playlist__show-image' src={(thumbnail ||
-            (featuredImage && featuredImage.url) :
+        {show ? <a href={`/shows/${show.slug}`}>
+          <img className='playlist__show-image' src={(show.thumbnail ||
+            (show.featuredImage && show.featuredImage.url) :
             'https://ktuh.org/img/ktuh-logo.jpg')} />
         </a> : null}
         <PlaylistTable tracks={Session.get('currentPlaylist') || []}
@@ -115,24 +124,4 @@ PlaylistPage.propTypes = {
   ready: PropTypes.bool
 };
 
-export default withTracker(() => {
-  var id = parseInt(FlowRouter.getParam('id'), 10), s0,
-    s1 = Meteor.subscribe('playlist', id, {
-      onReady: function() {
-        var playlist = Playlists.findOne({ spinPlaylistId: id });
-        if (playlist)
-          s0 = Meteor.subscribe('comments', playlist._id);
-      }
-    }),
-    s3 = Meteor.subscribe('activeShows');
-
-  return {
-    playlistId: parseInt(FlowRouter.getParam('id'), 10),
-    ready: (s0 && s0.ready() || true)
-      && s1.ready() && s3.ready(),
-    playlist: Playlists.findOne({ spinPlaylistId: id },
-      {
-        sort: { showDate: -1, spinPlaylistId: -1 }
-      })
-  }
-})(PlaylistPage);
+export default PlaylistPage;
