@@ -5,33 +5,29 @@ import PlaylistTable from './PlaylistTable.jsx';
 import Playlists from '../../../api/playlists/playlists_collection.js';
 import Shows from '../../../api/shows/shows_collection.js';
 import { Session } from 'meteor/session';
-import Comments from '../../../api/comments/comments_collection.js';
-import CommentItem from '../comments/CommentItem.jsx';
-import CommentSubmit from '../comments/CommentSubmit.jsx';
 import { default as momentUtil } from 'moment';
 import moment from 'moment-timezone';
 import { Metamorph } from 'react-metamorph';
 import { FlowRouter } from 'meteor/kadira:flow-router'
 import { requestSpinData } from '../../../startup/lib/helpers.js';
+import useSubscribe from '../../hooks/useSubscribe';
 
 function PlaylistPage() {
   let [playlistLoaded, setPlaylistLoaded] = useState(false),
-    [state, setState] = useState({
+    state = useSubscribe({
       playlist: null
+    }, function(fxn) {
+      let id = parseInt(FlowRouter.getParam('id'), 10);
+      Meteor.subscribe('activeShows');
+      return Meteor.subscribe('playlist', id, {
+        onReady: function() {
+          let playlist = Playlists.findOne({ spinPlaylistId: id });
+          if (playlist)
+            Meteor.subscribe('comments', playlist._id);
+          fxn({ playlist });
+        }
+      });
     });
-
-  useEffect(function() {
-    var id = parseInt(FlowRouter.getParam('id'), 10);
-    Meteor.subscribe('playlist', id, {
-      onReady: function() {
-        var playlist = Playlists.findOne({ spinPlaylistId: id });
-        if (playlist)
-          Meteor.subscribe('comments', playlist._id);
-        setState({ playlist });
-      }
-    });
-    Meteor.subscribe('activeShows');
-  }, [state.playlist]);
 
   function showDateOfLatestPlaylist(date) {
     return momentUtil(moment(date).tz('Pacific/Honolulu')).format('LL');
@@ -50,10 +46,6 @@ function PlaylistPage() {
     return Shows.findOne({ showId: state.playlist.showId });
   }
 
-  function comments() {
-    return Comments.find({ postId: state.playlist.showId }).fetch();
-  }
-
   useEffect(function() {
     if (playlistLoaded) {
       setPlaylistLoaded(false);
@@ -62,7 +54,7 @@ function PlaylistPage() {
 
   if (state.playlist) {
     let { djName, showDate, spinPlaylistId } = state.playlist,
-      commentary = comments(), show = showIfAny(),
+      show = showIfAny(),
       dateOfLatest = showDateOfLatestPlaylist(showDate),
       showStr = show ? `${show.showName} - ${dateOfLatest}` :
         `${showTime(state.playlist)} Sub Show with ${djName}`;
@@ -102,17 +94,6 @@ function PlaylistPage() {
         </a> : null}
         <PlaylistTable tracks={Session.get('currentPlaylist') || []}
           onPage={true}/>
-        <div className='comments'>
-          <h3 className='comments__header'>Comments</h3>
-          {commentary.length && <ul className='comments__list'>
-            {commentary.map((comment) =>
-              <CommentItem {...{ comment } }/>)}
-          </ul> || null}
-          {Meteor.user() && <CommentSubmit />  ||
-            <p className='comments__text'>
-              <i>Please log in to leave a comment.</i>
-            </p>}
-        </div>
       </div>,
       <PlaylistSidebar />];
   }
