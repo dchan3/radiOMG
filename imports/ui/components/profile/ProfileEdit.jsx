@@ -1,21 +1,20 @@
 import { Meteor } from 'meteor/meteor';
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import ProfileEditForm from './ProfileEditForm.jsx';
 import Profiles from '../../../api/users/profiles_collection.js';
+import useSubscribe from '../../hooks/useSubscribe';
 
 function ProfileEdit() {
-  let [state, setState] = useState({
+  let state = useSubscribe({
     profile: null
-  });
-
-  useEffect(function() {
-    var userId = Meteor.userId();
+  }, function(fxn) {
+    let userId = Meteor.userId();
     Meteor.subscribe('profileData', userId, { onReady: function() {
-      setState({
+      fxn({
         profile: userId ? Profiles.findOne({ userId }) : {}
       });
     } });
-  }, [state.profile]);
+  });
 
   return state.profile ? <div id="main">
     <h2 className='general__header'>Edit Profile</h2>

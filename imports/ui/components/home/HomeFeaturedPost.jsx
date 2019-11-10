@@ -1,27 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { renderSummary } from '../../../startup/lib/helpers.js';
 import Posts from '../../../api/posts/posts_collection.js';
 import { Meteor } from 'meteor/meteor';
+import useSubscribe from '../../hooks/useSubscribe';
 
 function HomeFeaturedPost() {
-  let [state, setState] = useState({
+  let state = useSubscribe({
     post: null
-  })
-
-  useEffect(function() {
-    Meteor.subscribe('latestFeaturedPost', { onReady:
+  },function(fxn) {
+    return Meteor.subscribe('latestFeaturedPost', { onReady:
       function() {
-        setState({ post: Posts.findOne({
+        fxn({ post: Posts.findOne({
           approved: true, featured: true
         }, {
           sort: { submitted: -1 }
         }) });
       }
     });
-  }, [state.post]);
+  });
 
   if (state.post) {
-    var { thumbnail, photo, category, slug, title, summary } = state.post;
+    let { thumbnail, photo, category, slug, title, summary } = state.post;
     return <div className='home__featured'>
       <div className='home__featured-content'>
         <div className='home__featured-photo'>

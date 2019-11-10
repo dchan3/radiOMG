@@ -1,16 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import PropTypes from 'prop-types';
+import React from 'react';
 import Posts from '../../../api/posts/posts_collection.js';
 import { usernameById, displayNameById, timeDiffString, renderSummary,
   getPathBySlug } from '../../../startup/lib/helpers.js';
 import { Meteor } from 'meteor/meteor';
+import useSubscribe from '../../hooks/useSubscribe';
 
 function NewsFeatured() {
-  let [state, setState] = useState({
+  let state = useSubscribe({
     featuredPost: null
-  });
-
-  useEffect(function() {
+  }, function(fxn) {
     Meteor.subscribe('latestFeaturedPost', {
       onReady: function() {
         let latestFeaturedPost =
@@ -19,11 +17,11 @@ function NewsFeatured() {
 
         if (latestFeaturedPost) {
           Meteor.subscribe('profileData', latestFeaturedPost.userId);
-          setState({ featuredPost: latestFeaturedPost })
         }
+        fxn({ featuredPost: latestFeaturedPost || null });
       }
     });
-  }, [state.featuredPost]);
+  });
 
   if (state.featuredPost) {
     let { thumbnail, photo, slug, title, author, summary, userId, submitted } =
@@ -53,10 +51,5 @@ function NewsFeatured() {
   }
   else return null;
 }
-
-NewsFeatured.propTypes = {
-  featuredPost: PropTypes.object,
-  ready: PropTypes.bool
-};
 
 export default NewsFeatured;

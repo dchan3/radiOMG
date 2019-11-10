@@ -118,4 +118,4 @@ export default function ProfileEditForm({ doc }) {
 
 ProfileEditForm.propTypes = {
   doc: object
-}
+};

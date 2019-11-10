@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Meteor } from 'meteor/meteor';
 import { FlowRouter } from 'meteor/kadira:flow-router';
 import Posts from '../../../api/posts/posts_collection.js';
@@ -7,6 +7,7 @@ import Shows from '../../../api/shows/shows_collection.js';
 import { Bert } from 'meteor/themeteorchef:bert';
 import { Metamorph } from 'react-metamorph';
 import ProfileSocialLink from './ProfileSocialLink.jsx';
+import useSubscribe from '../../hooks/useSubscribe';
 
 function ProfilePage() {
   function toggleBan() {
@@ -22,16 +23,14 @@ function ProfilePage() {
 
   useEffect(() => {}, [Meteor.user() && Meteor.user().hasRole('admin')]);
 
-  let [state, setState] = useState({
+  let state = useSubscribe({
     profile: null,
     posts: [],
     show: null
-  });
-
-  useEffect(function() {
+  },function(fxn) {
     let username = FlowRouter.getParam('username');
 
-    Meteor.subscribe('userData', username, {
+    return Meteor.subscribe('userData', username, {
       onReady: function() {
         let user = Meteor.users.findOne({ username: username });
         if (user !== undefined) {
@@ -39,7 +38,7 @@ function ProfilePage() {
             Meteor.subscribe('showByUserId', user._id, { onReady: function() {
               Meteor.subscribe('postsByUser', username, {
                 onReady: function() {
-                  setState({
+                  fxn({
                     profile: Profiles.findOne({ userId: user._id }),
                     posts: Posts.find({}, { sort: { submitted: -1 } }).fetch(),
                     show: Shows.findOne({ userId: user._id })
@@ -53,7 +52,7 @@ function ProfilePage() {
         }
       }
     });
-  }, [state.profile]);
+  });
 
   if (state.profile && !state.profile.banned) {
     let { name, photo, userId, thumbnail, website, twitter, facebook,

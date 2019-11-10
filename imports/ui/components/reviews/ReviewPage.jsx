@@ -1,21 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Meteor } from 'meteor/meteor';
 import Reviews from '../../../api/reviews/reviews_collection.js';
 import { default as moment } from 'moment';
 import { displayNameById, usernameById } from '../../../startup/lib/helpers.js';
 import { Metamorph } from 'react-metamorph';
 import { FlowRouter } from 'meteor/kadira:flow-router';
+import useSubscribe from '../../hooks/useSubscribe';
 
 function ReviewPage() {
-  let [state, setState] = useState({
+  let state = useSubscribe({
     review: null
-  });
-
-  useEffect(function() {
-    var slug = FlowRouter.getParam('slug');
-    Meteor.subscribe('singleReview', slug, {
+  },function(fxn) {
+    let slug = FlowRouter.getParam('slug');
+    return Meteor.subscribe('singleReview', slug, {
       onReady: function() {
-        var review = Reviews.findOne({ slug: slug });
+        let review = Reviews.findOne({ slug });
         if (!review) {
           FlowRouter.go('/not-found');
           return;
@@ -24,14 +23,14 @@ function ReviewPage() {
           onReady: function() {
             Meteor.subscribe('profileData', review.userId, {
               onReady: function() {
-                setState({ review: Reviews.findOne({ slug: slug }) });
+                fxn({ review });
               }
             });
           }
         });
       }
     });
-  }, [state.review]);
+  });
 
   function formattedRating(rating) {
     if (rating % 1 !== .5) return `${Number(rating).toString()}.0`;

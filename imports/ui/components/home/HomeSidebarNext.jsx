@@ -1,11 +1,10 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { nextShow, usernameById, displayNameById }
   from '../../../startup/lib/helpers.js';
 import { default as momentUtil } from 'moment';
-import { withTracker } from 'meteor/react-meteor-data';
+import useSubscribe from '../../hooks/useSubscribe';
 
-function HomeSidebarNext({ ready }) {
+function HomeSidebarNext() {
   function startEndTime(startHour, startMinute, endHour, endMinute) {
     if (startMinute === 1) {
       startMinute--;
@@ -14,16 +13,29 @@ function HomeSidebarNext({ ready }) {
       endHour = (endHour + 1) % 24;
       endMinute = 0;
     }
-    var sp = '';
-    if (startHour > endHour) sp = 'h:mm A'
+    let sp = '';
+    if (startHour > endHour) sp = 'h:mm A';
     else sp = 'h:mm';
     return `${momentUtil(`${startHour}:${startMinute}`, 'HH:mm')
       .format(sp)}-${
       momentUtil(`${endHour}:${endMinute}`, 'HH:mm').format('h:mm A')}`;
   }
 
-  if (ready)
-    return (<div className='home__next-show'>
+  let state = useSubscribe({ show: null }, function(fxn) {
+    Meteor.subscribe('nextOnAir', {
+      onReady: function () {
+        let show = nextShow(), userId = show && show.userId;
+        if (show) {
+          Meteor.subscribe('profileData', userId);
+          Meteor.subscribe('userById', userId);
+        }
+        fxn({ show });
+      }
+    });
+  });
+
+  if (state.show) {
+    return <div className='home__next-show'>
       <div className='home__next-show-deets'>
         <p className="home__next-on-air">Next On Air</p>
         <p className='home__next-show-name'>
@@ -47,27 +59,9 @@ function HomeSidebarNext({ ready }) {
           Program Schedule
         </div>
       </a>
-    </div>);
+    </div>;
+  }
   else return null;
 }
 
-HomeSidebarNext.propTypes = {
-  ready: PropTypes.bool
-}
-
-export default withTracker(() => {
-  var s2, s3, s1 = Meteor.subscribe('nextOnAir', {
-    onReady: function() {
-      var show = nextShow();
-      var userId = show && show.userId;
-      if (show) {
-        s2 = Meteor.subscribe('profileData', userId);
-        s3 = Meteor.subscribe('userById', userId);
-      }
-    }
-  });
-
-  return {
-    ready: s1.ready() && (s2 && s2.ready()) && (s3 && s3.ready())
-  };
-})(HomeSidebarNext);
+export default HomeSidebarNext;

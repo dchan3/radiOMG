@@ -1,24 +1,23 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Meteor } from 'meteor/meteor';
 import NewsItem from './NewsItem.jsx';
 import NewsFeatured from './NewsFeatured.jsx';
 import Posts from '../../../api/posts/posts_collection.js';
 import { Paginator } from 'react-everafter';
+import useSubscribe from '../../hooks/useSubscribe';
 
 function NewsListContent() {
-  let [state, setState] = useState({
+  let state = useSubscribe({
     posts: []
-  });
-
-  useEffect(function() {
-    Meteor.subscribe('posts', { onReady: function() {
+  }, function(fxn) {
+    return Meteor.subscribe('posts', { onReady: function() {
       Meteor.subscribe('latestFeaturedPost', { onReady: function() {
         Meteor.subscribe('djs', { onReady: function() {
           Meteor.subscribe('djProfiles', { onReady: function() {
             let featuredPost = Posts.findOne({
               approved: true, featured: true },
             { sort: { submitted: -1 } });
-            setState({
+            fxn({
               posts: Posts.find(featuredPost && {
                 _id: {
                   $ne: featuredPost._id
@@ -33,7 +32,7 @@ function NewsListContent() {
       }
       }); }
     });
-  }, [state.posts]);
+  });
 
 
   return <div className='news-list__content'>
