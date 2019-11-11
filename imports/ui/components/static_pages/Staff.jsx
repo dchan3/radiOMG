@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { object } from 'prop-types';
 import { Meteor } from 'meteor/meteor';
 import Profiles from '../../../api/users/profiles_collection.js';
 import Shows from '../../../api/shows/shows_collection.js';
 import { Metamorph } from 'react-metamorph';
 import { usernameById } from '../../../startup/lib/helpers.js';
+import useSubscribe from '../../hooks/useSubscribe';
 
 function StaffItem({ dj: { userId, name } }) {
   return <div className='staff__item'>
@@ -18,21 +19,28 @@ function StaffItem({ dj: { userId, name } }) {
 }
 
 function Staff() {
-  let [state, setState] = useState({
+  let state = useSubscribe({
     djs: []
-  });
-
-  useEffect(function() {
-    Meteor.subscribe('djProfiles');
-    Meteor.subscribe('djs');
-    Meteor.subscribe('activeShows');
-
-    setState({
-      djs: Profiles.find({
-        userId: { $in: Shows.find().fetch().map((show) => show.userId) }
-      }, { sort: { name: 1 } }).fetch()
+  },function(fxn) {
+    Meteor.subscribe('djProfiles', {
+      onReady: function() {
+        Meteor.subscribe('djs', {
+          onReady: function() {
+            Meteor.subscribe('activeShows', {
+              onReady: function() {
+                fxn({
+                  djs: Profiles.find({
+                    userId: {
+                      $in: Shows.find().fetch().map((show) => show.userId) }
+                  }, { sort: { name: 1 } }).fetch()
+                });
+              }
+            });
+          }
+        });
+      }
     });
-  }, [state.djs]);
+  });
 
   if (state.djs.length) {
     return [<Metamorph title="Staff - KTUH FM Honolulu | Radio for the People"

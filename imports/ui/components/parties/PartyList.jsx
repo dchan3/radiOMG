@@ -1,19 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import PartyItem from './PartyItem.jsx';
 import Parties from '../../../api/parties/parties_collection.js';
 import { Meteor } from 'meteor/meteor';
 import { Metamorph } from 'react-metamorph';
+import useSubscribe from '../../hooks/useSubscribe';
 
 function PartyList() {
-  let [state, setState] = useState({
+  let state = useSubscribe({
     parties: []
-  });
-
-  useEffect(function() {
-    Meteor.subscribe('approvedParties', { onReady: function() {
-      setState({ parties: Parties.find({}).fetch() });
+  }, function(fxn) {
+    return Meteor.subscribe('approvedParties', { onReady: function() {
+      fxn({ parties: Parties.find({}).fetch() });
     } });
-  }, [state.parties]);
+  });
 
   return [
     <Metamorph title='Events - KTUH FM Honolulu | Radio for the People'

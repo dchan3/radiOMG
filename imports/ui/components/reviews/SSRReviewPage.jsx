@@ -47,6 +47,6 @@ function SSRReviewPage({ review, rating }) {
 
 SSRReviewPage.propTypes = {
   review: PropTypes.object
-}
+};
 
 export default (review) => <SSRReviewPage review={review} />;

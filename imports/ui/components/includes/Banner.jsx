@@ -3,19 +3,30 @@ import { bool, object } from 'prop-types';
 import { Meteor } from 'meteor/meteor';
 import { getLocalTime } from '../../../startup/lib/helpers.js';
 import Notices from '../../../api/notices/notices_collection.js';
-import { withTracker } from 'meteor/react-meteor-data';
+import useSubscribe from '../../hooks/useSubscribe';
 
-function Banner({ ready, notice }) {
+function Banner() {
   function within(start, end) {
     let now = getLocalTime().toDate();
     return start < now && now < end;
   }
 
-  if (ready && notice && within(notice.startDatetime, notice.endDatetime)) {
+  let state = useSubscribe({
+    notice: null
+  }, function (fxn) {
+    return Meteor.subscribe('notices', {
+      onReady: function() {
+        fxn({ notice: Notices.findOne({}) });
+      }
+    });
+  });
+
+  if (state.notice && within(state.notice.startDatetime,
+    state.notice.endDatetime)) {
     return <div className='banner-container'>
       <div className={`banner ${
-        ['light', 'medium', 'dark'][notice.severity]}`}
-      dangerouslySetInnerHTML={{ __html: notice.body }} /></div>;
+        ['light', 'medium', 'dark'][state.notice.severity]}`}
+      dangerouslySetInnerHTML={{ __html: state.notice.body }} /></div>;
   }
   else return null;
 }
@@ -25,11 +36,4 @@ Banner.propTypes = {
   notice: object
 };
 
-export default withTracker(() => {
-  let s1 = Meteor.subscribe('notices');
-
-  return {
-    ready: s1.ready(),
-    notice: Notices.findOne({})
-  };
-})(Banner);
+export default Banner;

@@ -19,7 +19,7 @@ function NewsPage() {
           return;
         }
         Meteor.subscribe('comments', post._id);
-        if (post.userId) s1 = Meteor.subscribe('profileData', post.userId);
+        if (post.userId) Meteor.subscribe('profileData', post.userId);
         fxn({ post });
       }
     });

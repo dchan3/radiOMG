@@ -1,25 +1,24 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Meteor } from 'meteor/meteor';
 import Pages from '../../../api/pages/pages_collection.js';
 import { Metamorph } from 'react-metamorph';
 import { FlowRouter } from 'meteor/kadira:flow-router';
+import useSubscribe from '../../hooks/useSubscribe';
 
 function PagesItem() {
-  let [state, setState] = useState({
+  let state = useSubscribe({
     page: null
-  });
-
-  useEffect(function() {
+  }, function(fxn) {
     let slug = FlowRouter.getParam('slug');
-    Meteor.subscribe('singlePage', slug, {
+    return Meteor.subscribe('singlePage', slug, {
       onReady: function() {
-        setState({ page: Pages.findOne({ slug: slug, isDraft: false }) });
+        fxn({ page: Pages.findOne({ slug: slug, isDraft: false }) });
       },
       onStop: function() {
         FlowRouter.go('/not-found');
       }
     });
-  }), [state.page];
+  });
 
   if (state.page) {
     let { title, body } = state.page;

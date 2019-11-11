@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { Meteor } from 'meteor/meteor';
 import Parties from '../../../api/parties/parties_collection.js';
@@ -6,6 +6,7 @@ import { FlowRouter } from 'meteor/kadira:flow-router';
 import { Metamorph } from 'react-metamorph';
 import { Bert } from 'meteor/themeteorchef:bert';
 import { default as moment } from 'moment';
+import useSubscribe from '../../hooks/useSubscribe';
 
 function PartyPage() {
   function time(t) {
@@ -15,9 +16,8 @@ function PartyPage() {
   function upvoted(upvoters) {
     if (!Meteor.user()) return '';
 
-    var { username } = Meteor.user();
-    var a = upvoters || [];
-    var i = a.indexOf(username);
+    let { username } = Meteor.user(), a = upvoters || [],
+      i = a.indexOf(username);
 
     if (i >= -1) {
       return 'upvoted';
@@ -36,15 +36,13 @@ function PartyPage() {
     }
   }
 
-  let [state, setState] = useState({
+  let state = useSubscribe({
     party: null
-  });
-
-  useEffect(function() {
-    var slug = FlowRouter.getParam('slug');
-    Meteor.subscribe('singleParty', slug, {
+  }, function(fxn) {
+    let slug = FlowRouter.getParam('slug');
+    return Meteor.subscribe('singleParty', slug, {
       onReady: function () {
-        setState({
+        fxn({
           party: Parties.findOne({
             slug: FlowRouter.getParam('slug'),
             approved: true
@@ -52,10 +50,10 @@ function PartyPage() {
         });
       }
     });
-  }, []);
+  });
 
   if (state.party) {
-    var { title, thumbnail, summary, flyerFront, thumbnailBack, flyerBack,
+    let { title, thumbnail, summary, flyerFront, thumbnailBack, flyerBack,
       location, upvoters, tags, startTime, description
     } = state.party;
 
