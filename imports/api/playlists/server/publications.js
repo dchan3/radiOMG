@@ -1,7 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import Playlists from '../playlists_collection.js';
 import NowPlaying from '../now_playing.js';
-import { currentPlaylist } from '../../../startup/lib/helpers.js';
+import { currentPlaylist, lastPlaylist } from '../../../startup/lib/helpers.js';
 import { check } from 'meteor/check';
 
 Meteor.publish('playlist', function (id) {
@@ -31,3 +31,5 @@ Meteor.publish('showPlaylists', function(id) {
   check(id, Number);
   return Playlists.find({ showId: id }, { sort: { showDate: -1 } });
 });
+
+Meteor.publish('lastPlaylist', lastPlaylist);

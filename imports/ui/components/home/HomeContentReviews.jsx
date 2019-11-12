@@ -8,7 +8,7 @@ function HomeContentReviews() {
   let state = useSubscribe({
     reviews: []
   },function(fxn) {
-    Meteor.subscribe('reviewsLimited',
+    return Meteor.subscribe('reviewsLimited',
       { limit: 6, sort: { submitted: -1 } }, {
         onReady: function() {
           fxn({ reviews: Reviews.find({ approved: true },

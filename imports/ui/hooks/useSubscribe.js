@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 
-export default function useSubscribe(initialState, subscription) {
+export default function useSubscribe(initialState, subscription, deps) {
   let [state, setState] = useState(initialState),
     sub = useRef();
 
@@ -10,7 +10,7 @@ export default function useSubscribe(initialState, subscription) {
     return function cleanup() {
       if (sub.current) sub.current.stop();
     }
-  }, [state]);
+  }, deps ? [state, ...deps] : [state]);
 
   return state;
 }

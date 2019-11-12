@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
-import { bool, object } from 'prop-types';
-import { currentPlaylistFindOne, showByShowId, requestSpinData } from
+import React, { useEffect, useState } from 'react';
+import { currentPlaylistFindOne, showByShowId } from
   '../../../startup/lib/helpers.js';
 import { Meteor } from 'meteor/meteor';
 import PlaylistSidebar from './PlaylistSidebar.jsx';
@@ -8,32 +7,31 @@ import PlaylistTable from './PlaylistTable.jsx';
 import Shows from '../../../api/shows/shows_collection.js';
 import Profiles from '../../../api/users/profiles_collection.js';
 import Playlists from '../../../api/playlists/playlists_collection.js';
-import { withTracker } from 'meteor/react-meteor-data';
 import { default as momentUtil } from 'moment';
 import moment from 'moment-timezone';
-import { Session } from 'meteor/session';
 import { Metamorph } from 'react-metamorph';
+import {
+  PlaylistViewProvider,
+  usePlaylistViewContext
+} from './PlaylistViewContext';
 
-function PlaylistList({ currentPlaylist, ready }) {
-  let [state, setState] = useState({ playlistLoaded: false });
+function PlaylistList() {
+  let { playlistView, playlistData, playlist, showInfo } = usePlaylistViewContext();
 
   function isPlaylistCurrent() {
-    var current = currentPlaylistFindOne();
+    let current = currentPlaylistFindOne();
     return current !== undefined;
   }
 
   function showTime(startDay, startHour) {
-    var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday',
+    let days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday',
       'Friday', 'Saturday'];
     return `${days[startDay]}s at ${
       momentUtil().hour(startHour).format('h A')}`;
   }
 
-  function actualShowHost(showId) {
-    var showHost = Shows.findOne({ showId }).host;
-    var playlistDJ = Playlists.findOne({}, { sort: { showDate: -1 } }).djName;
-    if (showHost !== playlistDJ) return playlistDJ;
-    else return showHost;
+  function actualShowHost() {
+    return playlist && playlist.djName || '';
   }
 
   function timeHMS(date, startTime, endTime) {
@@ -44,8 +42,8 @@ function PlaylistList({ currentPlaylist, ready }) {
 
   function usernameFromDisplayName(name) {
     var profile = Profiles.findOne({ name });
-    var user = profile && Meteor.users.findOne({ _id: profile.userId });
-    return user && user.username;
+    var user = profile && Meteor.users.findOne({ _id: profile.userId }) || null;
+    return user && user.username || null;
   }
 
   function usernameById(id) {
@@ -54,9 +52,12 @@ function PlaylistList({ currentPlaylist, ready }) {
     else return undefined;
   }
 
-  function renderHost({ userId, showId, startDay, startHour, host }) {
-    var { showDate, startTime, endTime, djName } = currentPlaylist;
-    var latestShow = showByShowId(showId);
+  function renderHost(show) {
+    var { userId, showId, startDay, startHour, host } = show;
+
+    if (!playlist) return null;
+    var { showDate, startTime, endTime, djName } = playlist,
+      latestShow = showByShowId(showId);
 
     if (usernameById(userId)) {
       if (actualShowHost(showId)) {
@@ -64,105 +65,56 @@ function PlaylistList({ currentPlaylist, ready }) {
           <a href={`/profile/${usernameById(userId)}`}>
             {actualShowHost(showId)}
           </a>];
-      }
-      else return [`${
+      } else return [`${
         showTime(latestShow.startDay, latestShow.startHour)} • Hosted by `,
       <a href={`/profile/${usernameById(userId)}`}>{host}</a>];
-    }
-    else if (currentPlaylist) {
-
+    } else if (playlistView) {
       return [`${timeHMS(showDate, startTime, endTime)} • Hosted by `,
         (usernameFromDisplayName(djName) && (
           <a href={`/profile/${usernameFromDisplayName(djName)}`}>
             {djName}
           </a>) || djName)];
-    }
-    else return null;
+    } else return null;
   }
 
-  if (ready) {
-    var pid = currentPlaylist.spinPlaylistId;
-    if (!state.playlistLoaded) {
-      requestSpinData(pid, (error, result) => {
-        if (!error && result) {
-          Session.set('currentPlaylist',
-            pid > 10000 ?
-              result.data.items :
-              JSON.parse(result.content).results);
-          Session.set('playlistViewing', pid);
-          setState({ playlistLoaded: true });
-        }
-      });
-    }
-    var latestShow = showByShowId(currentPlaylist.showId);
-
-    if (latestShow) {
-      var { thumbnail, slug, showName, synopsis } = latestShow;
-    }
-
+  if (showInfo) {
     return [
       <Metamorph
         title="Show Playlists - KTUH FM Honolulu | Radio for the People"
         description="KTUH Show Playlists"
-        image='https://ktuh.org/img/ktuh-logo.jpg' />,
+        image='https://ktuh.org/img/ktuh-logo.jpg'/>,
       <h2 className='general__header' key='header-title'>Playlists</h2>,
       <div className='playlist-list__latest' key='playlist-content'>
-        {latestShow && thumbnail && (
-          <a href={`/shows/${slug}`}>
-            <img className='playlist__show-image'
-              src={thumbnail} />
-          </a>)}
+        {showInfo !== 'not found' && showInfo.thumbnail && (
+          <a href={`/shows/${showInfo.slug}`}>
+            <img className='playlist__show-image' src={showInfo.thumbnail}/>
+          </a>) || null}
         <h5 className='playlist-list__current'>
           {isPlaylistCurrent() ?
             'CURRENT PLAYLIST' : 'LAST LOGGED PLAYLIST'}
         </h5>
         <h3 className='playlist-list__show-name'>
-          {latestShow && ((slug && showName) &&
-              <a href={`/shows/${slug}`}>
-                {showName}
-              </a> || showName || 'Sub Show')}
+          {showInfo !== 'not found' && ((showInfo.slug && showInfo.showName) &&
+            <a href={`/shows/${showInfo.slug}`}>
+              {showInfo.showName}
+            </a> || showInfo.showName || 'Sub Show') || 'Sub Show'}
         </h3>
-        {latestShow && synopsis && <p>{synopsis}</p> || null}
+        {showInfo !== 'not found' &&
+          showInfo.synopsis && <p>{showInfo.synopsis}</p> || null}
         <h5 className='playlist-list__show-host'>
-          {latestShow && renderHost(latestShow)}
+          {showInfo !== 'not found' && renderHost(showInfo)
+            || playlist && `${
+              timeHMS(playlist.showDate, playlist.startTime, playlist.endTime)
+            } • Hosted by ${playlist.djName}` || null}
         </h5>
-        {state.playlistLoaded &&
-          <PlaylistTable tracks={Session.get('currentPlaylist') || []}
-            onPage={false}/> || null}
+        {playlistData && playlistData.length &&
+        <PlaylistTable tracks={playlistData} onPage={false}/> || null}
       </div>,
-      <PlaylistSidebar key='playlist-sidebar' />
+      <PlaylistSidebar key='playlist-sidebar'/>
     ];
   }
   else return null;
 }
 
-PlaylistList.propTypes = {
-  currentPlaylist: object,
-  ready: bool
-};
-
-export default withTracker(() => {
-  var s1 = Meteor.subscribe('activeShows'),
-    s2 = Meteor.subscribe('currentPlaylist', {
-      onReady: function() {
-        var playlist = Playlists.findOne({},
-            { limit: 1, sort: { showDate: -1 } }),
-          show = Shows.findOne({ showId: playlist.showId }),
-          showId = show && show.showId || -1;
-
-        if (showId > -1) {
-          Meteor.subscribe('userById', show.userId);
-          Meteor.subscribe('profileData', show.userId);
-        }
-        else {
-          Meteor.subscribe('profileDataByUsername', playlist.djName);
-          Meteor.subscribe('userByDisplayName', playlist.djName);
-        }
-      }
-    });
-
-  return {
-    ready: s1.ready() && s2.ready(),
-    currentPlaylist: Playlists.findOne({}, { sort: { showDate: -1 } })
-  };
-})(PlaylistList);
+export default () => (
+  <PlaylistViewProvider><PlaylistList /></PlaylistViewProvider>);

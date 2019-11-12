@@ -27,6 +27,14 @@ export const currentPlaylist = function() {
   }, { sort: { startTime: -1 } });
 };
 
+export const lastPlaylist = function() {
+  var ret = currentPlaylist();
+  if (!ret.length) {
+    ret = Playlists.find({}, { sort: { startTime: -1 }, limit: 1});
+  }
+  return ret;
+};
+
 export const currentPlaylistFindOne = function() {
   var now = getLocalTime(),
     playlist = Playlists.findOne({
@@ -131,7 +139,7 @@ export const renderSummary = function(summary, numWords) {
 };
 
 export const getPathBySlug = function(template, slug) {
-  return FlowRouter.path(template, { slug: slug });
+  return FlowRouter.path(template, { slug });
 };
 
 export const pages = function(items, per) {
@@ -150,11 +158,26 @@ export const pages = function(items, per) {
   return retval;
 };
 
-export const requestSpinData = function(playlistId, cb) {
+export const requestSpinData = async function(playlistId, cb) {
   if (playlistId < 10000) {
-    Meteor.call('getPlaylistOrInfo', playlistId, true, cb);
+    return;
   }
   else {
     Meteor.call('getPlaylistSpins', playlistId, cb);
   }
 };
+
+export const requestSpinDataSync = async function(playlistId) {
+  await new Promise((resolve, reject) => {
+    if (playlistId < 10000) {
+      return resolve(null);
+    }
+    else {
+      Meteor.call('getPlaylistSpins', playlistId, function(error, result) {
+        if (error) return reject(error);
+        resolve(result);
+      });
+    }
+  });
+};
+

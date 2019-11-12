@@ -1,33 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import PropTypes from 'prop-types';
+import React from 'react';
 import PlaylistSidebar from './PlaylistSidebar.jsx';
 import PlaylistTable from './PlaylistTable.jsx';
-import Playlists from '../../../api/playlists/playlists_collection.js';
-import Shows from '../../../api/shows/shows_collection.js';
-import { Session } from 'meteor/session';
 import { default as momentUtil } from 'moment';
 import moment from 'moment-timezone';
 import { Metamorph } from 'react-metamorph';
-import { FlowRouter } from 'meteor/kadira:flow-router'
-import { requestSpinData } from '../../../startup/lib/helpers.js';
-import useSubscribe from '../../hooks/useSubscribe';
+import { FlowRouter } from 'meteor/kadira:flow-router';
+import {
+  PlaylistViewProvider, usePlaylistViewContext
+} from './PlaylistViewContext';
 
 function PlaylistPage() {
-  let [playlistLoaded, setPlaylistLoaded] = useState(false),
-    state = useSubscribe({
-      playlist: null
-    }, function(fxn) {
-      let id = parseInt(FlowRouter.getParam('id'), 10);
-      Meteor.subscribe('activeShows');
-      return Meteor.subscribe('playlist', id, {
-        onReady: function() {
-          let playlist = Playlists.findOne({ spinPlaylistId: id });
-          if (playlist)
-            Meteor.subscribe('comments', playlist._id);
-          fxn({ playlist });
-        }
-      });
-    });
+  let { playlistData, playlist, showInfo } = usePlaylistViewContext();
 
   function showDateOfLatestPlaylist(date) {
     return momentUtil(moment(date).tz('Pacific/Honolulu')).format('LL');
@@ -42,67 +25,42 @@ function PlaylistPage() {
         .tz('Pacific/Honolulu')).format('h:mm a')}`);
   }
 
-  function showIfAny() {
-    return Shows.findOne({ showId: state.playlist.showId });
-  }
-
-  useEffect(function() {
-    if (playlistLoaded) {
-      setPlaylistLoaded(false);
-    }
-  }, [state.playlist, playlistLoaded]);
-
-  if (state.playlist) {
-    let { djName, showDate, spinPlaylistId } = state.playlist,
-      show = showIfAny(),
+  if (playlist) {
+    let { djName, showDate } = playlist,
       dateOfLatest = showDateOfLatestPlaylist(showDate),
-      showStr = show ? `${show.showName} - ${dateOfLatest}` :
-        `${showTime(state.playlist)} Sub Show with ${djName}`;
-    if (!playlistLoaded) {
-      requestSpinData(spinPlaylistId, (error, result) => {
-        if (!error && result) {
-          Session.set('currentPlaylist',
-            spinPlaylistId > 10000 ? result.data.items :
-              JSON.parse(result.content).results);
-          Session.set('playlistViewing', spinPlaylistId);
-          setPlaylistLoaded(true);
-        }
-      });
-    }
+      showStr = showInfo ? `${showInfo.showName} - ${dateOfLatest}` :
+        `${showTime(playlist)} Sub Show with ${djName}`;
 
     return [
       <Metamorph title={`${showStr} - KTUH FM Honolulu | Radio for the People`}
-        description={showStr} image={show.thumbnail ||
+        description={showStr} image={showInfo.thumbnail ||
           'https://ktuh.org/img/ktuh-logo.png'} />,
       <h2 className='general__header'>
-        {show &&
-            [<a href={`/shows/${show.slug}`}>
-              {show.showName}
+        {showInfo &&
+            [<a href={`/shows/${showInfo.slug}`}>
+              {showInfo.showName}
             </a>, ` playlist - ${
               showDateOfLatestPlaylist(showDate)}`] ||
-            [`${showTime(state.playlist)} w/ ${djName
+            [`${showTime(playlist)} w/ ${djName
             } playlist - ${showDateOfLatestPlaylist(showDate)}`]}
       </h2>,
       <div className='playlist__link'>
         <a href='/playlists' className='back-to'>← Back to Playlists</a>
       </div>,
       <div className='playlist__content'>
-        {show ? <a href={`/shows/${show.slug}`}>
-          <img className='playlist__show-image' src={(show.thumbnail ||
-            (show.featuredImage && show.featuredImage.url) :
+        {showInfo ? <a href={`/shows/${showInfo.slug}`}>
+          <img className='playlist__show-image' src={(showInfo.thumbnail ||
+            (showInfo.featuredImage && showInfo.featuredImage.url) :
             'https://ktuh.org/img/ktuh-logo.jpg')} />
         </a> : null}
-        <PlaylistTable tracks={Session.get('currentPlaylist') || []}
-          onPage={true}/>
+        <PlaylistTable tracks={playlistData} onPage={true}/>
       </div>,
       <PlaylistSidebar />];
   }
   else return null;
 }
 
-PlaylistPage.propTypes = {
-  playlist: PropTypes.object,
-  ready: PropTypes.bool
-};
-
-export default PlaylistPage;
+export default () => (
+  <PlaylistViewProvider currentPlaylist={
+    parseInt(FlowRouter.getParam('id'), 10)
+  }><PlaylistPage /></PlaylistViewProvider>);

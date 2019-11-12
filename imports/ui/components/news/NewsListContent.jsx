@@ -11,26 +11,17 @@ function NewsListContent() {
     posts: []
   }, function(fxn) {
     return Meteor.subscribe('posts', { onReady: function() {
-      Meteor.subscribe('latestFeaturedPost', { onReady: function() {
-        Meteor.subscribe('djs', { onReady: function() {
-          Meteor.subscribe('djProfiles', { onReady: function() {
-            let featuredPost = Posts.findOne({
-              approved: true, featured: true },
-            { sort: { submitted: -1 } });
-            fxn({
-              posts: Posts.find(featuredPost && {
-                _id: {
-                  $ne: featuredPost._id
-                },
-                approved: true } || { approved: true },
+      Meteor.subscribe('djs', { onReady: function() {
+        Meteor.subscribe('djProfiles', { onReady: function() {
+          fxn({
+            posts: Posts.find({ approved: true },
               { sort: { submitted: -1 } }).fetch()
-            });
-          }
           });
         }
         });
       }
-      }); }
+      });
+    }
     });
   });
 

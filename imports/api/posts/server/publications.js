@@ -7,11 +7,24 @@ Meteor.publish('postsLimited', (options) => {
     sort: Object,
     limit: Number
   });
-  return Posts.find({ featured: false, approved: true }, options);
+
+  let featuredPost = Posts.findOne({ approved: true, featured: true },
+      { sort: { submitted: -1 } }), query = { featured: false, approved: true };
+
+  if (featuredPost) {
+    query._id = { $ne: featuredPost._id };
+  }
+
+  return Posts.find(query, options);
 });
 
 Meteor.publish('posts', function() {
-  return Posts.find({ approved: true }, { sort: { submitted: -1 } });
+  let featuredPost = Posts.findOne({ approved: true, featured: true },
+    { sort: { submitted: -1 } });
+
+  return Posts.find(featuredPost ? { _id: {
+    $ne: featuredPost._id }, approved: true
+  } : { approved: true }, { sort: { submitted: -1 } });
 });
 
 Meteor.publish('latestFeaturedPost', () =>

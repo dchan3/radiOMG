@@ -8,12 +8,13 @@ function HomeContentNews() {
   let state = useSubscribe({
     posts: []
   }, function (fxn) {
-    Meteor.subscribe('posts', { onReady: function() {
+    return Meteor.subscribe('postsLimited', {
+      limit: 6, sort: { submitted: -1 }
+    }, { onReady: function() {
       Meteor.subscribe('djs', { onReady: function() {
         Meteor.subscribe('djProfiles', { onReady: function() {
           fxn({
-            posts: Posts.find({ featured: false }, {
-              limit: 6, sort: { submitted: -1 } }).fetch()
+            posts: Posts.find({ approved: true }).fetch()
           });
         }
         });
@@ -23,7 +24,7 @@ function HomeContentNews() {
     });
   });
 
-  return <div className='home__news'>
+  return state.posts.length ? <div className='home__news'>
     <a href='/radioblog'>
       <h3 className='home__section'>RADIOBLOG</h3>
     </a>
@@ -35,7 +36,7 @@ function HomeContentNews() {
       {state.posts.map((item) => (
         <HomeContentNewsItem item={item} />))}
     </div>
-  </div>;
+  </div> : null;
 }
 
 export default HomeContentNews;

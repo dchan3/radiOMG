@@ -1,20 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import PropTypes from 'prop-types';
-import { Session } from 'meteor/session';
-import { withTracker } from 'meteor/react-meteor-data';
+import React, { useContext } from 'react';
 import Shows from '../../../api/shows/shows_collection.js';
 import Playlists from '../../../api/playlists/playlists_collection.js';
 import { default as moment } from 'moment';
 import { uniq, map, pluck } from 'underscore';
+import useSubscribe from '../../hooks/useSubscribe';
+import PlaylistViewContext from './PlaylistViewContext';
 
-function PlaylistSidebar({ ready }) {
-  let [state, setState] = useState({
-    loaded: false,
-    sidebar: null
-  });
+function PlaylistSidebar() {
+  let { playlistView, setPlaylistView } = useContext(PlaylistViewContext),
+    state = useSubscribe({
+      sidebar: null
+    }, function(fxn) {
+      return Meteor.subscribe('playlistsLimited', {
+        sort: { showDate: -1, spinPlaylistId: -1 }, limit: 12 }, {
+        onReady: function() {
+          fxn({ sidebar: getSidebarData() });
+        }
+      });
+    }, [playlistView]);
 
   function getSidebarData() {
-    var viewingPlaylistId = Session.get('playlistViewing'), playlistDates;
+    let viewingPlaylistId = playlistView, playlistDates;
     if (viewingPlaylistId) {
       playlistDates = Playlists.find({ spinPlaylistId: {
         $ne: viewingPlaylistId }
@@ -28,7 +34,7 @@ function PlaylistSidebar({ ready }) {
         limit: 12
       }).fetch();
     }
-    var uniqDates = uniq(map(pluck(playlistDates, 'showDate'),
+    let uniqDates = uniq(map(pluck(playlistDates, 'showDate'),
         (date) => {
           date.setSeconds(0);
           date.setMilliseconds(0);
@@ -67,18 +73,7 @@ function PlaylistSidebar({ ready }) {
     return moment(date).format('ddd. MMMM DD, YYYY');
   }
 
-  function handleClick() {
-    setState({ loaded: false, sidebar: state.sidebar });
-  }
-
-  useEffect(function() {
-    var sidebar = getSidebarData(),
-      stateObj =  sidebar.length ? { loaded: true, sidebar: sidebar } :
-        { loaded: false, sidebar: null }
-    setState(stateObj);
-  }, [state.loaded, ready]);
-
-  if (ready) {
+  if (state.sidebar) {
     return (
       <div className='playlist__sidebar corner'>
         <h4 className='playlist__sidebar-header'>Browse Latest</h4>
@@ -93,10 +88,22 @@ function PlaylistSidebar({ ready }) {
               let { startMinute, startHour, endHour, endMinute, showName } =
                 showById(showId);
               return <div><p className='playlist__sidebar-link'>
-                <a href={`/playlists/${spinPlaylistId}`} onClick={handleClick}>
+                <a href={`/playlists/${spinPlaylistId}`} onClick={() => {
+                  setPlaylistView(spinPlaylistId);
+                }}>
                   {[timeFromHours(startHour, startMinute, endHour, endMinute),
                     ` ${showName}`] || [
                     `${timeFromHMS(startTime, endTime) } w/ ${djName}`] || null}
+                </a>
+              </p>
+              </div>;
+            }
+            else {
+              return <div><p className='playlist__sidebar-link'>
+                <a href={`/playlists/${spinPlaylistId}`} onClick={() => {
+                  setPlaylistView(spinPlaylistId);
+                }}>
+                  {`${timeFromHMS(startTime, endTime) } w/ ${djName}`}
                 </a>
               </p>
               </div>;
@@ -109,14 +116,4 @@ function PlaylistSidebar({ ready }) {
   else return null;
 }
 
-PlaylistSidebar.propTypes = {
-  ready: PropTypes.bool
-}
-
-export default withTracker(() => {
-  var s1 = Meteor.subscribe('playlistsLimited', {
-    sort: { showDate: -1, spinPlaylistId: -1 }, limit: 12 });
-  return {
-    ready: s1.ready()
-  };
-})(PlaylistSidebar)
+export default PlaylistSidebar;
