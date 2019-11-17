@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 
 export default function HomeContentReviewsItem(
   { item: { slug, thumbnail, image, _id, artist, releaseName } }) {
@@ -11,8 +10,4 @@ export default function HomeContentReviewsItem(
       <p className='home__subtitle'>{releaseName}</p>
     </a>
   </div>;
-}
-
-HomeContentReviewsItem.propTypes = {
-  item: PropTypes.object
 }

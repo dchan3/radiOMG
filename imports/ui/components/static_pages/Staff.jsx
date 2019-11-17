@@ -1,5 +1,4 @@
 import React from 'react';
-import { object } from 'prop-types';
 import { Meteor } from 'meteor/meteor';
 import Profiles from '../../../api/users/profiles_collection.js';
 import Shows from '../../../api/shows/shows_collection.js';
@@ -53,9 +52,5 @@ function Staff() {
   }
   else return null;
 }
-
-StaffItem.propTypes = {
-  dj: object
-};
 
 export default Staff;

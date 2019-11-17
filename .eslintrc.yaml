@@ -32,6 +32,7 @@ rules:
   meteor/template-names: off
   meteor/no-session: off
   react/jsx-key: off
+  react/prop-types: off
   react/display-name: off
   react/no-unescaped-entities: off
   indent:

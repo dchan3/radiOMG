@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 
 function ChartTableRow({ track }) {
   return (
@@ -31,12 +30,4 @@ export default function ChartTable({ tracks }) {
       </tbody>
     </table>
   );
-}
-
-ChartTable.propTypes = {
-  tracks: PropTypes.array
-}
-
-ChartTableRow.propTypes = {
-  track: PropTypes.object
 }

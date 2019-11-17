@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Bert } from 'meteor/themeteorchef:bert';
-import { string, object } from 'prop-types';
 import { $ } from 'meteor/jquery';
 import { Session } from 'meteor/session';
 import 'mediaelement';
@@ -65,9 +64,3 @@ export default function MediaElement({ options, id, src }) {
   return <div className="audio-player"
     dangerouslySetInnerHTML={{ __html: mediaHtml }}></div>;
 }
-
-MediaElement.propTypes = {
-  options: object,
-  id: string,
-  src: string
-};

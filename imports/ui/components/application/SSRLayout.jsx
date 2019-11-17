@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import SSRHeader from '../includes/SSRHeader.jsx';
 import Footer from '../includes/Footer.jsx';
 import { Helmet } from 'react-helmet';
@@ -29,8 +28,4 @@ export default function Layout({ content }) {
     </div>
   </div>,
   <Footer key='footer' />];
-}
-
-Layout.propTypes = {
-  content: PropTypes.object
 }

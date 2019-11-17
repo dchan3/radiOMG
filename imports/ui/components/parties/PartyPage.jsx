@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { Meteor } from 'meteor/meteor';
 import Parties from '../../../api/parties/parties_collection.js';
 import { FlowRouter } from 'meteor/kadira:flow-router';
@@ -95,12 +94,6 @@ function PartyPage() {
       </div>]
   }
   else return null;
-}
-
-PartyPage.propTypes = {
-  ready: PropTypes.bool,
-  party: PropTypes.object,
-  comments: PropTypes.array
 }
 
 export default PartyPage;

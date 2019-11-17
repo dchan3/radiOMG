@@ -1,12 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { currentPlaylistFindOne, showByShowId } from
+import React from 'react';
+import { currentPlaylistFindOne } from
   '../../../startup/lib/helpers.js';
 import { Meteor } from 'meteor/meteor';
 import PlaylistSidebar from './PlaylistSidebar.jsx';
 import PlaylistTable from './PlaylistTable.jsx';
-import Shows from '../../../api/shows/shows_collection.js';
 import Profiles from '../../../api/users/profiles_collection.js';
-import Playlists from '../../../api/playlists/playlists_collection.js';
 import { default as momentUtil } from 'moment';
 import moment from 'moment-timezone';
 import { Metamorph } from 'react-metamorph';
@@ -57,7 +55,7 @@ function PlaylistList() {
 
     if (!playlist) return null;
     var { showDate, startTime, endTime, djName } = playlist,
-      latestShow = showByShowId(showId);
+      latestShow = showInfo;
 
     if (usernameById(userId)) {
       if (actualShowHost(showId)) {

@@ -1,18 +1,30 @@
 import React from 'react';
-import { bool, array } from 'prop-types';
 import Charts from '../../../api/charts/charts_collection.js';
-import { withTracker } from 'meteor/react-meteor-data';
 import { Meteor } from 'meteor/meteor';
 import { default as momentUtil } from 'moment';
 import EverAfter from 'react-everafter';
+import useSubscribe from '../../hooks/useSubscribe';
 
-function MusicCharts({ ready, charts }) {
-  if (ready) {
+function MusicCharts() {
+  let state = useSubscribe({
+    charts: []
+  }, function (fxn) {
+
+    return Meteor.subscribe('charts', {
+      onReady: function() {
+        fxn({
+          chart: Charts.find({ sort: { createdAt: -1 } }).fetch()
+        });
+      }
+    });
+  });
+
+  if (state.charts) {
     return <div className='music__playlists'>
       <h2>Charts</h2>
       <div>
         <EverAfter.TablePaginator perPage={8} className="playlist-list"
-          items={charts} truncate={true} columns={[{
+          items={state.charts} truncate={true} columns={[{
             headerText: 'Chart Title',
             display: ({ title }) => title
           }, {
@@ -31,15 +43,4 @@ function MusicCharts({ ready, charts }) {
   else return null;
 }
 
-MusicCharts.propTypes = {
-  ready: bool,
-  charts: array
-};
-
-export default withTracker(() => {
-  let s1 = Meteor.subscribe('charts');
-  return {
-    ready: s1.ready(),
-    charts: Charts.find({}, { sort: { createdAt: -1 } }).fetch()
-  };
-})(MusicCharts);
+export default MusicCharts;

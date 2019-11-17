@@ -1,5 +1,4 @@
 import React from 'react';
-import { array, bool } from 'prop-types';
 import moment from 'moment-timezone';
 import { default as momentUtil } from 'moment';
 
@@ -59,8 +58,3 @@ export default function PlaylistTable({ tracks, onPage }) {
         </tr>;
       })}</tbody></table>;
 }
-
-PlaylistTable.propTypes = {
-  tracks: array,
-  onPage: bool
-};

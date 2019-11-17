@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { Meteor } from 'meteor/meteor';
 import { default as moment } from 'moment';
 
@@ -50,8 +49,4 @@ export default function ShowItem({ show: { startHour, startMinute, endHour,
       </div> || null }
     </div>
   </div></div>;
-}
-
-ShowItem.propTypes = {
-  show: PropTypes.object
 }

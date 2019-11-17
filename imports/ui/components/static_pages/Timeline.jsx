@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { Metamorph } from 'react-metamorph';
 
 const timeline_data = [
@@ -129,11 +128,6 @@ function TimelineNode({ title, body }) {
       </div>
     </div>
   );
-}
-
-TimelineNode.propTypes = {
-  title: PropTypes.string,
-  body: PropTypes.string
 }
 
 export default function Timeline() {

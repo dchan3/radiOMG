@@ -85,18 +85,31 @@ function PlaylistSidebar() {
           shows.map(({ showId, spinPlaylistId, startTime, endTime, djName
           }) => {
             if (showId > -1) {
-              let { startMinute, startHour, endHour, endMinute, showName } =
-                showById(showId);
-              return <div><p className='playlist__sidebar-link'>
-                <a href={`/playlists/${spinPlaylistId}`} onClick={() => {
-                  setPlaylistView(spinPlaylistId);
-                }}>
-                  {[timeFromHours(startHour, startMinute, endHour, endMinute),
-                    ` ${showName}`] || [
-                    `${timeFromHMS(startTime, endTime) } w/ ${djName}`] || null}
-                </a>
-              </p>
-              </div>;
+              if (showById(showId)) {
+                let { startMinute, startHour, endHour, endMinute, showName } =
+                  showById(showId);
+                return <div><p className='playlist__sidebar-link'>
+                  <a href={`/playlists/${spinPlaylistId}`} onClick={() => {
+                    setPlaylistView(spinPlaylistId);
+                  }}>
+                    {[timeFromHours(startHour, startMinute, endHour, endMinute),
+                      ` ${showName}`] || [
+                      `${timeFromHMS(startTime, endTime) } w/ ${djName}`]
+                      || null}
+                  </a>
+                </p>
+                </div>;
+              }
+              else {
+                return <div><p className='playlist__sidebar-link'>
+                  <a href={`/playlists/${spinPlaylistId}`} onClick={() => {
+                    setPlaylistView(spinPlaylistId);
+                  }}>
+                    {`${timeFromHMS(startTime, endTime) } w/ ${djName}`}
+                  </a>
+                </p>
+                </div>;
+              }
             }
             else {
               return <div><p className='playlist__sidebar-link'>

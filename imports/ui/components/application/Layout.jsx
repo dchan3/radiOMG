@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { oneOfType, object, func } from 'prop-types';
 import Landing from '../home/Landing.jsx';
 import Header from '../includes/Header.jsx';
 import Footer from '../includes/Footer.jsx';
@@ -30,8 +29,4 @@ export default function Layout({ content }) {
     </div>,
     <Footer key='footer' />
   ];
-}
-
-Layout.propTypes = {
-  content: oneOfType([object, func])
 }

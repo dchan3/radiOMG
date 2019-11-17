@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import PropTypes from 'prop-types';
 import { currentPlaylistFindOne, currentShow, getLocalTime,
   usernameFromDisplayName } from '../../../startup/lib/helpers.js';
-import { withTracker } from 'meteor/react-meteor-data';
 import NowPlaying from '../../../api/playlists/now_playing.js';
 import { default as momentUtil } from 'moment';
 import moment from 'moment-timezone';
 import { $ } from 'meteor/jquery';
+import useSubscribe from '../../hooks/useSubscribe';
 
 function isSubShow() {
   var show = currentShow();
@@ -39,14 +38,14 @@ function showActualHost() {
 }
 
 function LandingInfo({ nowPlaying }) {
-  function timeout({ timestamp }) {
-    return getLocalTime().diff(momentUtil(
-      moment(timestamp, 'Pacific/Honolulu'))
-    ) > 360000;
+  function timeout(foo) {
+    return foo ? getLocalTime().diff(momentUtil(
+      moment(foo.timestamp, 'Pacific/Honolulu'))
+    ) > 360000 : false;
   }
 
   function whatsNowPlaying() {
-    if (nowPlaying !== undefined && !timeout(nowPlaying))
+    if (nowPlaying && !timeout(nowPlaying))
       return nowPlaying.current;
     else return false;
   }
@@ -102,12 +101,39 @@ function LandingInfo({ nowPlaying }) {
   </div>;
 }
 
-LandingInfo.propTypes = {
-  nowPlaying: PropTypes.object
-}
-
-function Landing({ ready, nowPlaying }) {
+function Landing() {
   let [state, setState] = useState({ playing: false });
+
+  let np = useSubscribe({
+    nowPlaying: null
+  }, function(fxn) {
+    return Meteor.subscribe('nowPlaying', { onReady: function() {
+      fxn({ nowPlaying: NowPlaying.findOne() });
+      Meteor.subscribe('showNowPlaying', {
+        onReady: function() {
+          Meteor.subscribe('currentPlaylist', {
+            onReady: function() {
+              var playlist = currentPlaylistFindOne();
+              var show = currentShow();
+              if (show && playlist) {
+                if (show.host === playlist.djName) {
+                  Meteor.subscribe('userById', show.userId);
+                  Meteor.subscribe('profileData', show.userId);
+                }
+                else if (show.host !== playlist.djName) {
+                  Meteor.subscribe('userByDisplayName', playlist.djName);
+                }
+              }
+              else if (show && !playlist) {
+                Meteor.subscribe('userById', show.userId);
+                Meteor.subscribe('profileData', show.userId);
+              }
+            }
+          });
+        }
+      });
+    } });
+  })
 
   useEffect(function() {
     setState({
@@ -153,73 +179,36 @@ function Landing({ ready, nowPlaying }) {
     setState({ playing: !paused });
   }
 
-  if (ready)
-    return <div className='landing' style={{ backgroundImage: background() }}>
-      <div className='landing__box'>
-        <div className='landing__play-btn-outer'
-          onClick={handlePlayBtn}>
-          {state.playing ? [
-            <div className='landing__pause-btn-l'
-              key='pause-button-left'></div>,
-            <div className='landing__pause-btn-r'
-              key='pause-button-right'></div>
-          ] : (
-            <div className='landing__play-btn' key='play-button'>
-              <div className='landing__play-btn-triangle'></div>
-            </div>
-          )}
-        </div>
-        <LandingInfo host={showActualHost()} nowPlaying={nowPlaying} />
+  return <div className='landing' style={{ backgroundImage: background() }}>
+    <div className='landing__box'>
+      <div className='landing__play-btn-outer'
+        onClick={handlePlayBtn}>
+        {state.playing ? [
+          <div className='landing__pause-btn-l'
+            key='pause-button-left'></div>,
+          <div className='landing__pause-btn-r'
+            key='pause-button-right'></div>
+        ] : (
+          <div className='landing__play-btn' key='play-button'>
+            <div className='landing__play-btn-triangle'></div>
+          </div>
+        )}
       </div>
-      <h4 className='landing__freq landing__hnl-freq'>90.1 FM Honolulu</h4>
-      <h4 className='landing__freq landing__ns-freq'>91.1 FM Waialua </h4>
-      <a href='/playlists'>
-        <h6 className='landing__current-playlist'>
-          <span className='landing__view-current'>
-            View Current{' '}
-          </span>Playlist{'  '}
-          <span className='glyphicon glyphicon-eye-open'></span>
-        </h6>
-      </a>
-      <div className='landing__down-arrow'
-        onClick={handleClickDownArrow}></div>
-    </div>;
-  else return null;
+      <LandingInfo host={showActualHost()} nowPlaying={np.nowPlaying} />
+    </div>
+    <h4 className='landing__freq landing__hnl-freq'>90.1 FM Honolulu</h4>
+    <h4 className='landing__freq landing__ns-freq'>91.1 FM Waialua </h4>
+    <a href='/playlists'>
+      <h6 className='landing__current-playlist'>
+        <span className='landing__view-current'>
+          View Current{' '}
+        </span>Playlist{'  '}
+        <span className='glyphicon glyphicon-eye-open'></span>
+      </h6>
+    </a>
+    <div className='landing__down-arrow'
+      onClick={handleClickDownArrow}></div>
+  </div>;
 }
 
-Landing.propTypes = {
-  ready: PropTypes.bool,
-  nowPlaying: PropTypes.object
-}
-
-export default withTracker(() => {
-  var s2 = Meteor.subscribe('showNowPlaying', {
-    onReady: function() {
-      Meteor.subscribe('currentPlaylist', {
-        onReady: function() {
-          var playlist = currentPlaylistFindOne();
-          var show = currentShow();
-          if (show && playlist) {
-            if (show.host === playlist.djName) {
-              Meteor.subscribe('userById', show.userId);
-              Meteor.subscribe('profileData', show.userId);
-            }
-            else if (show.host !== playlist.djName) {
-              Meteor.subscribe('userByDisplayName', playlist.djName);
-            }
-          }
-          else if (show && !playlist) {
-            Meteor.subscribe('userById', show.userId);
-            Meteor.subscribe('profileData', show.userId);
-          }
-        }
-      });
-    }
-  });
-  var s3 = Meteor.subscribe('nowPlaying');
-
-  return {
-    ready: s2.ready() && s3.ready(),
-    nowPlaying: NowPlaying.findOne()
-  };
-})(Landing);
+export default Landing;

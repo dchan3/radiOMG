@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { bool, string, oneOfType } from 'prop-types';
 import { FlowRouter } from 'meteor/kadira:flow-router';
 import { _ } from 'underscore';
 import { Session } from 'meteor/session';
@@ -154,7 +153,3 @@ export default function Header({ loaded }) {
     </div>
   </nav>;
 }
-
-Header.propTypes = {
-  loaded: oneOfType([bool, string])
-};

@@ -1,5 +1,4 @@
 import React, { useReducer, useEffect } from 'react';
-import { string, array } from 'prop-types';
 import { Metamorph } from 'react-metamorph';
 
 const faq_data = [
@@ -178,11 +177,6 @@ function QAPair({ question, answer }) {
   );
 }
 
-QAPair.propTypes = {
-  question: string,
-  answer: string
-};
-
 function QASection({ title, pairs }) {
   return (
     <div className='faq__section'>
@@ -197,11 +191,6 @@ function QASection({ title, pairs }) {
     </div>
   )
 }
-
-QASection.propTypes = {
-  title: string,
-  pairs: array
-};
 
 export default function FAQ() {
   return [<Metamorph title=

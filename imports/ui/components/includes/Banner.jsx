@@ -1,5 +1,4 @@
 import React from 'react';
-import { bool, object } from 'prop-types';
 import { Meteor } from 'meteor/meteor';
 import { getLocalTime } from '../../../startup/lib/helpers.js';
 import Notices from '../../../api/notices/notices_collection.js';
@@ -30,10 +29,5 @@ function Banner() {
   }
   else return null;
 }
-
-Banner.propTypes = {
-  ready: bool,
-  notice: object
-};
 
 export default Banner;

@@ -1,5 +1,4 @@
 import React from 'react';
-import { object } from 'prop-types';
 import Pages from '../../../api/pages/pages_collection.js';
 import { Metamorph } from 'react-metamorph';
 
@@ -13,9 +12,5 @@ function SSRPagesItem({ page: { title, body } }) {
       dangerouslySetInnerHTML={{ __html: body }} />
   ];
 }
-
-SSRPagesItem.propTypes = {
-  page: object
-};
 
 export default (slug) => <SSRPagesItem page={Pages.findOne({ slug })} />;

@@ -1,22 +1,34 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { FlowRouter } from 'meteor/kadira:flow-router';
 import Charts from '../../../api/charts/charts_collection.js';
 import ChartsSidebar from './ChartsSidebar.jsx';
 import ChartTable from './ChartTable.jsx';
-import { withTracker } from 'meteor/react-meteor-data';
 import { default as momentUtil } from 'moment';
 import moment from 'moment-timezone';
 import { Metamorph } from 'react-metamorph';
+import useSubscribe from '../../hooks/useSubscribe';
 
-function ChartsPage({ ready, chart }) {
+function ChartsPage() {
+  let state = useSubscribe({
+    chart: []
+  }, function (fxn) {
+    let slug = FlowRouter.getParam('slug');
+    return Meteor.subscribe('singleChart', {
+      onReady: function() {
+        fxn({
+          chart: Charts.findOne({ slug })
+        });
+      }
+    });
+  });
 
   function dateFmt(date) {
     return momentUtil(moment(date, 'Pacific/Honolulu')).format('MMMM DD, YYYY');
   }
 
-  if (ready) {
-    let { title, chartDate, tracks } = chart, dateStr = dateFmt(chartDate);
+  if (state.chart) {
+    let { title, chartDate, tracks } = state.chart,
+      dateStr = dateFmt(chartDate);
 
     return [
       <Metamorph title={`${title} - ${dateStr
@@ -36,17 +48,4 @@ function ChartsPage({ ready, chart }) {
   else return null;
 }
 
-ChartsPage.propTypes = {
-  ready: PropTypes.bool,
-  chart: PropTypes.object
-}
-
-export default withTracker(() => {
-  var slug = FlowRouter.getParam('slug'),
-    s1 = Meteor.subscribe('singleChart', slug);
-
-  return {
-    ready: s1.ready(),
-    chart: Charts.findOne({ slug: slug })
-  }
-})(ChartsPage);
+export default ChartsPage;

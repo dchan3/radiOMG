@@ -1,23 +1,75 @@
 import React, { useState, useEffect } from 'react';
-import { object, func, bool } from 'prop-types';
 import { Meteor } from 'meteor/meteor';
 import { default as momentUtil } from 'moment';
 import moment from 'moment-timezone';
 import { Session } from 'meteor/session';
 import { FlowRouter } from 'meteor/kadira:flow-router';
-import { withTracker } from 'meteor/react-meteor-data';
 import Playlists from '../../../api/playlists/playlists_collection.js';
 import Shows from '../../../api/shows/shows_collection.js';
 import { Bert } from 'meteor/themeteorchef:bert';
 import { Metamorph } from 'react-metamorph';
 import { filter, uniq, map, pluck } from 'underscore';
 import { $ } from 'meteor/jquery';
+import useSubscribe from '../../hooks/useSubscribe';
 
-function ShowPage({
-  show, pastPlaylists, playlistsByYear, ready, actualPlaylist }) {
+function ShowPage() {
   let [state, setState] = useState({
     playlistLoaded: false
   });
+
+  let showState = useSubscribe(null, function(fxn) {
+    let slug = FlowRouter.getParam('slug');
+
+    return Meteor.subscribe('singleShow', slug, {
+      onReady: function() {
+        let show = Shows.findOne({ slug });
+        if (show) {
+          Meteor.subscribe('userById', show.userId);
+          Meteor.subscribe('showPlaylists', show.showId);
+        }
+        else {
+          FlowRouter.go('/not-found');
+          return;
+        }
+      }
+    }, { onReady: function() {
+      fxn({ actualPlaylist: function(playlistData) {
+        if (playlistData === undefined) return [];
+        let retval = playlistData;
+        retval.sort(function(a,b) {
+          if (a.start > b.start) {
+            return 1;
+          }
+          else if (a.start < b.start) {
+            return -1;
+          }
+          else return 0;
+        });
+        return retval;
+      },
+      show: Shows.findOne({ slug: FlowRouter.getParam('slug') }),
+      pastPlaylists: function(showId) {
+        return Playlists.find({ showId },
+          { sort: { showDate: -1 }, skip: 1 }).fetch()
+      },
+      playlistsByYear: (showId) => {
+        let playlistDates = Playlists.find({ showId }, { sort: { showDate: -1 },
+            skip: 1 }).fetch(), uniqDates = uniq(map(pluck(playlistDates,
+            'showDate'), (obj) => obj.getFullYear()), true, (date) => +date),
+          a = [];
+        for (let p = 0; p < uniqDates.length; p++) {
+          let r = {};
+          r.year = uniqDates[p];
+          r.shows = filter(playlistDates,
+            (obj) => obj.showDate.getFullYear() === uniqDates[p]);
+          a.push(r);
+        }
+        return a;
+      }
+      });
+    }
+    });
+  })
 
   function day(num) {
     return ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday',
@@ -68,7 +120,8 @@ function ShowPage({
       $('.mejs__time-slider').css('visibility', 'visible');
       $('.mejs__broadcast').css('visibility', 'hidden');
       player.setSrc(mp3Url);
-      var message = `Now playing the latest episode of ${show.showName}`;
+      var message = `Now playing the latest episode of ${
+        showState.show.showName}`;
       Session.set('defaultLoaded', false);
       player.setSrc(mp3Url);
       if (!Session.get('playedStream')) Session.set('playedStream', true);
@@ -94,10 +147,11 @@ function ShowPage({
   }
 
   function latestPlaylist() {
-    var show = Shows.findOne({ slug: FlowRouter.getParam('slug') }),
-      showId = show && show.showId;
-    return showId &&
-      Playlists.findOne({ showId }, { $sort: { showDate: -1 } });
+    if (!showState) return null;
+    let { show } = showState;
+    if (!show) return null;
+    let { showId } = show;
+    return Playlists.findOne({ showId }, { $sort: { showDate: -1 } });
   }
 
   function requestSpinData() {
@@ -133,9 +187,11 @@ function ShowPage({
     }
   }, [state.playlistLoaded]);
 
-  if (ready) {
-    let { showName, host, featuredImage, thumbnail, genres, startHour,
-      startMinute, endHour, endMinute, startDay, latestEpisodeUrl } = show;
+  if (showState) {
+    let { show, pastPlaylists, playlistsByYear, actualPlaylist } = showState,
+      { showName, host, featuredImage, thumbnail, genres, startHour,
+        startMinute, endHour, endMinute, startDay, latestEpisodeUrl }
+      = show;
     if (!state.playlistLoaded) requestSpinData();
     return [
       <Metamorph
@@ -258,64 +314,5 @@ function ShowPage({
   else return null;
 }
 
-ShowPage.propTypes = {
-  show: object,
-  pastPlaylists: func,
-  playlistsByYear: func,
-  ready: bool,
-  actualPlaylist: func
-};
 
-export default withTracker(() => {
-  let slug = FlowRouter.getParam('slug'),
-    s0, s2, s1 = Meteor.subscribe('singleShow', slug, {
-      onReady: function() {
-        let show = Shows.findOne({ slug });
-        if (show) {
-          s0 = Meteor.subscribe('userById', show.userId);
-          s2 = Meteor.subscribe('showPlaylists', show.showId);
-        }
-        else {
-          FlowRouter.go('/not-found');
-          return;
-        }
-      }
-    });
-
-  return {
-    ready: s1.ready() && (s0 && s0.ready()) && (s2 && s2.ready()),
-    actualPlaylist: function(playlistData) {
-      if (playlistData === undefined) return [];
-      let retval = playlistData;
-      retval.sort(function(a,b) {
-        if (a.start > b.start) {
-          return 1;
-        }
-        else if (a.start < b.start) {
-          return -1;
-        }
-        else return 0;
-      });
-      return retval;
-    },
-    show: Shows.findOne({ slug: FlowRouter.getParam('slug') }),
-    pastPlaylists: function(showId) {
-      return Playlists.find({ showId },
-        { sort: { showDate: -1 }, skip: 1 }).fetch()
-    },
-    playlistsByYear: (showId) => {
-      let playlistDates = Playlists.find({ showId }, { sort: { showDate: -1 },
-          skip: 1 }).fetch(), uniqDates = uniq(map(pluck(playlistDates,
-          'showDate'), (obj) => obj.getFullYear()), true, (date) => +date),
-        a = [];
-      for (let p = 0; p < uniqDates.length; p++) {
-        let r = {};
-        r.year = uniqDates[p];
-        r.shows = filter(playlistDates,
-          (obj) => obj.showDate.getFullYear() === uniqDates[p]);
-        a.push(r);
-      }
-      return a;
-    }
-  }
-})(ShowPage);
+export default ShowPage;

@@ -30,7 +30,7 @@ export const currentPlaylist = function() {
 export const lastPlaylist = function() {
   var ret = currentPlaylist();
   if (!ret.length) {
-    ret = Playlists.find({}, { sort: { startTime: -1 }, limit: 1});
+    ret = Playlists.find({}, { sort: { startTime: -1 }, limit: 1 });
   }
   return ret;
 };

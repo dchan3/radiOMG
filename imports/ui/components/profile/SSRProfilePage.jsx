@@ -1,5 +1,4 @@
 import React from 'react';
-import { object, array } from 'prop-types';
 import Posts from '../../../api/posts/posts_collection.js';
 import Shows from '../../../api/shows/shows_collection.js';
 import { Metamorph } from 'react-metamorph';
@@ -49,12 +48,6 @@ function SSRProfilePage({ profile, show, posts }) {
     return <p>This user does not have a profile.</p>;
   }
 }
-
-SSRProfilePage.propTypes = {
-  profile: object,
-  show: object,
-  posts: array
-};
 
 export default (profile) => <SSRProfilePage profile={profile}
   posts={Posts.find({ userId: profile.userId })}

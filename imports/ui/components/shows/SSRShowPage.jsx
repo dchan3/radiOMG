@@ -1,5 +1,4 @@
 import React from 'react';
-import { object } from 'prop-types';
 import { default as momentUtil } from 'moment';
 import moment from 'moment-timezone';
 import { Metamorph } from 'react-metamorph';
@@ -62,9 +61,5 @@ function SSRShowPage({ show }) {
     </div>
   ];
 }
-
-SSRShowPage.propTypes = {
-  show: object
-};
 
 export default (show) => <SSRShowPage show={show} />;

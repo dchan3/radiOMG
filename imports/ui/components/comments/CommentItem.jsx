@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { default as moment } from 'moment';
 
 export default function CommentItem({ comment: { body, submitted, author } }) {
@@ -20,8 +19,4 @@ export default function CommentItem({ comment: { body, submitted, author } }) {
       </p>
     </li>
   );
-}
-
-CommentItem.propTypes = {
-  comment: PropTypes.object
 }

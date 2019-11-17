@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 
 export default function ReviewItem({ item: {
   slug, thumbnail, image, artist, releaseName
@@ -19,8 +18,4 @@ export default function ReviewItem({ item: {
       </a>
     </div>
   );
-}
-
-ReviewItem.propTypes = {
-  item: PropTypes.object
 }

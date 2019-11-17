@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { displayNameById, usernameById, timeDiffString, renderSummary,
   getPathBySlug } from '../../../startup/lib/helpers.js';
 
@@ -46,7 +45,3 @@ export default function NewsItem({ item: {
     </div>
   );
 }
-
-NewsItem.propTypes = {
-  item: PropTypes.object
-};

@@ -1,13 +1,17 @@
-import React, { useReducer } from 'react';
-import PropTypes from 'prop-types';
+import React, { useEffect, useState, useReducer } from 'react';
 import { Meteor } from 'meteor/meteor';
 import { Accounts } from 'meteor/accounts-base';
 import { FlowRouter } from 'meteor/kadira:flow-router';
-import { withTracker } from 'meteor/react-meteor-data';
 import { $ } from 'meteor/jquery';
 import LoginErrorMessage from './LoginErrorMessage.jsx';
 
-function CustomLoginButtons({ currentUser }) {
+function CustomLoginButtons() {
+  let [userState, setUserState]= useState({ currentUser: null });
+
+  useEffect(function() {
+    setUserState({ currentUser: Meteor.isClient ? Meteor.user() : null });
+  }, []);
+
   function reducer(state, { attr, toggle, value }) {
     let newState = Object.assign({}, state);
     if (toggle) newState[attr] = !newState[attr];
@@ -25,7 +29,7 @@ function CustomLoginButtons({ currentUser }) {
     }, [ state, dispatch ] = useReducer(reducer, initialState)
 
   function handleView() {
-    let { username } = currentUser;
+    let { username } = setUserState.currentUser;
     FlowRouter.go('profilePage', { username });
   }
 
@@ -335,7 +339,7 @@ function CustomLoginButtons({ currentUser }) {
   return (
     <li id="login-dropdown-list" className='dropdown'>
       <a className="dropdown-toggle" data-toggle="dropdown">
-        {(currentUser ? currentUser.username :
+        {(userState.currentUser ? userState.currentUser.username :
           'Sign in / Join')}
         <b className="caret"></b>
       </a>
@@ -343,7 +347,7 @@ function CustomLoginButtons({ currentUser }) {
         {state.errorMessage ?
           <LoginErrorMessage errorMessage={state.errorMessage} />
           : null}
-        {currentUser ?
+        {userState.currentUser ?
           (state.change ? menuLoggedInChange() :
             menuLoggedInNoChange()) :
           (state.signup ? menuSignup() :
@@ -353,12 +357,4 @@ function CustomLoginButtons({ currentUser }) {
   );
 }
 
-CustomLoginButtons.propTypes = {
-  currentUser: PropTypes.object
-};
-
-export default withTracker(() => {
-  return {
-    currentUser: Meteor.isClient ? Meteor.user() : null
-  };
-})(CustomLoginButtons);
+export default CustomLoginButtons;

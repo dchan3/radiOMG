@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { renderSummary, usernameById, displayNameById, timeDiffString }
   from '../../../startup/lib/helpers.js';
 
@@ -22,8 +21,4 @@ export default function HomeContentNewsItem({ item }) {
         </a> : author} / {timeDiffString(submitted)}
     </p>
   </div>;
-}
-
-HomeContentNewsItem.propTypes = {
-  item: PropTypes.object
 }

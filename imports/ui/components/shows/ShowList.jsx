@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
-import PropTypes from 'prop-types';
 import { Meteor } from 'meteor/meteor';
 import { FlowRouter } from 'meteor/kadira:flow-router';
 import Shows from '../../../api/shows/shows_collection.js';
 import { getLocalTime } from '../../../startup/lib/helpers.js';
-import { withTracker } from 'meteor/react-meteor-data';
 import ShowItem from './ShowItem.jsx';
 import { Metamorph } from 'react-metamorph';
+import useSubscribe from '../../hooks/useSubscribe';
 
-function ShowList({ ready }) {
+function ShowList() {
   const day = FlowRouter.getQueryParam('day'),
     dows = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday',
       'Friday', 'Saturday'], date = getLocalTime();
@@ -17,6 +16,15 @@ function ShowList({ ready }) {
     day: dows.indexOf(FlowRouter.getQueryParam('day'))
   });
 
+  let listState = useSubscribe(null, function(fxn) {
+    Meteor.subscribe('activeShows', { onReady: function() {
+      Meteor.subscribe('djs', {
+        onReady: function() {
+          fxn(1);
+        }
+      });
+    } });
+  });
 
   function active(d) {
     // We're not routed to a particular day of the week
@@ -57,7 +65,7 @@ function ShowList({ ready }) {
     </div>
   }
 
-  if (ready)
+  if (listState)
     return [
       <Metamorph title='Show Schedule - KTUH FM Honolulu | Radio for the People'
         description='Show Schedule on KTUH' image=
@@ -72,14 +80,4 @@ function ShowList({ ready }) {
   else return null;
 }
 
-ShowList.propTypes = {
-  ready: PropTypes.bool
-};
-
-export default withTracker(() => {
-  let s1 = Meteor.subscribe('activeShows'), s2 = Meteor.subscribe('djs');
-
-  return {
-    ready: s1.ready() && s2.ready()
-  }
-})(ShowList);
+export default ShowList;

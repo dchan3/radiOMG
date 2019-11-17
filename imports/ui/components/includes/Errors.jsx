@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import PropTypes from 'prop-types';
 import Errors from '../../../../client/helpers/errors.js';
 import Notifications from
   '../../../api/notifications/notifications_collection.js';
@@ -69,9 +68,5 @@ function ErrorsBox() {
       )}
     </div>];
 }
-
-Error.propTypes = {
-  error: PropTypes.object
-};
 
 export default ErrorsBox;

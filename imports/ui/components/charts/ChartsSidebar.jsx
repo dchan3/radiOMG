@@ -1,24 +1,34 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { Meteor } from 'meteor/meteor';
 import Charts from '../../../api/charts/charts_collection.js';
-import { withTracker } from 'meteor/react-meteor-data';
 import { default as momentUtil } from 'moment';
 import moment from 'moment-timezone';
-import { pages } from '../../../startup/lib/helpers.js';
 import EverAfter from 'react-everafter';
+import useSubscribe from '../../hooks/useSubscribe';
 
-function ChartsSidebar({ ready, charts }) {
+function ChartsSidebar() {
+  let state = useSubscribe({
+    charts: []
+  }, function (fxn) {
+    return Meteor.subscribe('charts', {
+      onReady: function() {
+        fxn({
+          charts: Charts.find({}, { sort: { chartDate: -1, title: 1 } }).fetch()
+        });
+      }
+    });
+  });
+
   function dateFmt(date) {
     return momentUtil(moment(date, 'Pacific/Honolulu')).format('MMMM DD, YYYY');
   }
 
-  if (ready) {
+  if (state.charts) {
     return (
       <div className='playlist__sidebar'>
         <h6>More Charts</h6>
         <EverAfter.TablePaginator className="playlist-list__table"
-          perPage={8} items={charts}
+          perPage={8} items={state.charts}
           truncate={true} columns={[{
             headerText: '',
             display:
@@ -33,19 +43,4 @@ function ChartsSidebar({ ready, charts }) {
   else return null;
 }
 
-ChartsSidebar.propTypes = {
-  ready: PropTypes.bool,
-  charts: PropTypes.array
-}
-
-export default withTracker(() => {
-  var s1 = Meteor.subscribe('charts');
-
-  return {
-    ready: s1.ready(),
-    pages: pages(Charts.find({}, { sort:
-      { chartDate: -1, title: 1 }
-    }).fetch(), 8),
-    charts: Charts.find({}, { sort: { chartDate: -1, title: 1 } }).fetch()
-  };
-})(ChartsSidebar);
+export default ChartsSidebar;

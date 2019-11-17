@@ -1,5 +1,4 @@
 import React from 'react';
-import { any, bool } from 'prop-types';
 
 export default function GeneralHeader({ big, children }) {
   if (big) {
@@ -9,11 +8,6 @@ export default function GeneralHeader({ big, children }) {
     return <h2 className="general__header">{children}</h2>;
   }
 }
-
-GeneralHeader.propTypes = {
-  children: any,
-  big: bool
-};
 
 GeneralHeader.defaultProps = {
   big: false

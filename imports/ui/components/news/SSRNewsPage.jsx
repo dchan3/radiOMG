@@ -1,5 +1,4 @@
 import React from 'react';
-import { object, array } from 'prop-types';
 import Comments from '../../../api/comments/comments_collection.js';
 import CommentItem from '../comments/CommentItem.jsx';
 import { displayNameById, dateFormat } from '../../../startup/lib/helpers.js';
@@ -35,11 +34,6 @@ function SSRNewsPage({ post: { author, thumbnail, title, summary, userId, photo,
     </div>
   ]
 }
-
-SSRNewsPage.propTypes = {
-  post: object,
-  comments: array
-};
 
 export default (post) =>
   <SSRNewsPage post={post} comments={Comments.find({ _id: post._id })} />;

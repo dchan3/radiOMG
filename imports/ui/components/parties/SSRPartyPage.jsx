@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import Comments from '../../../api/comments/comments_collection.js';
 import CommentItem from '../comments/CommentItem.jsx';
 import { Metamorph } from 'react-metamorph';
@@ -50,11 +49,6 @@ function SSRPartyPage({ party, comments }) {
     </div>
   ];
 }
-
-SSRPartyPage.propTypes = {
-  party: PropTypes.object,
-  comments: PropTypes.array
-};
 
 export default (party) => <SSRPartyPage party={party}
   comments={Comments.find({ postId: party._id })} />;

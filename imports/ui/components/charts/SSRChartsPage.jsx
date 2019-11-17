@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import ChartTable from './ChartTable.jsx';
 import { default as momentUtil } from 'moment';
 import moment from 'moment-timezone';
@@ -30,10 +29,6 @@ function SSRChartsPage({ chart: {
         <ChartTable tracks={tracks} /> || null}
     </div>
   ];
-}
-
-SSRChartsPage.propTypes = {
-  chart: PropTypes.object
 }
 
 export default (chart) => <SSRChartsPage chart={chart} />;

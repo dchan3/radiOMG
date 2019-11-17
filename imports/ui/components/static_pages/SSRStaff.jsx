@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import Profiles from '../../../api/users/profiles_collection.js';
 import Shows from '../../../api/shows/shows_collection.js';
 import { Metamorph } from 'react-metamorph';
@@ -34,15 +33,6 @@ function Staff({ ready, djs }){
   }
   else return null;
 }
-
-StaffItem.propTypes = {
-  dj: PropTypes.object
-};
-
-Staff.propTypes = {
-  ready: PropTypes.bool,
-  djs: PropTypes.array
-};
 
 export default <Staff
   ready={true} djs={Profiles.find({

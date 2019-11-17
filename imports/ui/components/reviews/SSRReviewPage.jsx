@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { default as moment } from 'moment';
 import { displayNameById, usernameById } from '../../../startup/lib/helpers.js';
 import { Metamorph } from 'react-metamorph';
@@ -44,9 +43,5 @@ function SSRReviewPage({ review, rating }) {
     </div>
   ];
 }
-
-SSRReviewPage.propTypes = {
-  review: PropTypes.object
-};
 
 export default (review) => <SSRReviewPage review={review} />;

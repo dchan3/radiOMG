@@ -27,8 +27,6 @@ export function usePlaylistViewContext() {
       playlistData: [],
       showInfo: null
     }, function(fxn) {
-      Meteor.subscribe('activeShows');
-
       return playlistView > -1
         ? Meteor.subscribe('playlist', playlistView, {
           onReady: function() {

@@ -1,22 +1,33 @@
 import React from 'react';
-import { bool, array } from 'prop-types';
 import Playlists from '../../../api/playlists/playlists_collection.js';
 import Shows from '../../../api/shows/shows_collection.js';
-import { withTracker } from 'meteor/react-meteor-data';
 import { Meteor } from 'meteor/meteor';
 import { default as momentUtil } from 'moment';
 import EverAfter from 'react-everafter';
+import useSubscribe from '../../hooks/useSubscribe';
 
-function MusicPlaylists({ ready, playlists }){
+function MusicPlaylists(){
+  let state = useSubscribe({
+    playlists: []
+  }, function (fxn) {
+    return Meteor.subscribe('playlists', {
+      onReady: function() {
+        fxn({
+          playlists: Playlists.find({}, { sort: { showDate: -1 } }).fetch()
+        });
+      }
+    });
+  });
+
   function showFromId(showId) {
     return Shows.findOne({ showId });
   }
 
-  if (ready) {
+  if (state.playlists.length) {
     return <div className='music__playlists'>
       <h2>Playlists</h2>
       <div>
-        <EverAfter.TablePaginator items={playlists} perPage={7}
+        <EverAfter.TablePaginator items={state.playlists} perPage={7}
           truncate={true} className="playlist-list" columns={[{
             headerText: '',
             display: ({ showId }) =>
@@ -41,16 +52,4 @@ function MusicPlaylists({ ready, playlists }){
   else return null;
 }
 
-MusicPlaylists.propTypes = {
-  ready: bool,
-  playlists: array
-};
-
-export default withTracker(() => {
-  let s1 = Meteor.subscribe('playlists'), s2 = Meteor.subscribe('shows');
-
-  return {
-    ready: s1.ready() && s2.ready(),
-    playlists: Playlists.find({}, { sort: { showDate: -1 } }).fetch()
-  }
-})(MusicPlaylists);
+export default MusicPlaylists;

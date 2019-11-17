@@ -1,5 +1,4 @@
 import React from 'react';
-import { object } from 'prop-types';
 import { getPathBySlug } from '../../../startup/lib/helpers.js';
 
 export default function NewsListLatestReviewsItem({ review: {
@@ -15,7 +14,3 @@ export default function NewsListLatestReviewsItem({ review: {
     </div>
   );
 }
-
-NewsListLatestReviewsItem.propTypes = {
-  review: object
-};

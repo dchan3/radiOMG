@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { object } from 'prop-types';
 import { Meteor } from 'meteor/meteor';
 import { FlowRouter } from 'meteor/kadira:flow-router';
 import Profiles from '../../../api/users/profiles_collection.js';
@@ -115,7 +114,3 @@ export default function ProfileEditForm({ doc }) {
     </form>
   );
 }
-
-ProfileEditForm.propTypes = {
-  doc: object
-};
