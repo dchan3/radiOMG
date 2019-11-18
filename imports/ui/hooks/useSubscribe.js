@@ -1,16 +1,21 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function useSubscribe(initialState, subscription, deps) {
   let [state, setState] = useState(initialState),
-    sub = useRef();
+    sub = null;
+
+  let [ready, setReady] = useState(false);
 
   useEffect(function() {
-    sub.current = subscription(setState);
+    sub = subscription(setState);
+
+    if (sub && sub.ready()) setReady(true);
 
     return function cleanup() {
-      if (sub.current) sub.current.stop();
+      if (sub) sub.stop();
+      sub = null;
     }
-  }, deps ? [state, ...deps] : [state]);
+  }, deps ? [state, ...deps, ready] : [state, ready]);
 
   return state;
 }

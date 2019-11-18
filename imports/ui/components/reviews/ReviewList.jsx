@@ -9,7 +9,7 @@ function ReviewList() {
   let state = useSubscribe({
     reviews: []
   },function(fxn) {
-    Meteor.subscribe('approvedReviews', {
+    return Meteor.subscribe('approvedReviews', {
       onReady: function() {
         fxn({ reviews: Reviews.find({ approved: true },
           { sort: { submitted: -1 } }).fetch() });

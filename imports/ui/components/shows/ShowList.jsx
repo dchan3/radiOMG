@@ -17,7 +17,7 @@ function ShowList() {
   });
 
   let listState = useSubscribe(null, function(fxn) {
-    Meteor.subscribe('activeShows', { onReady: function() {
+    return Meteor.subscribe('activeShows', { onReady: function() {
       Meteor.subscribe('djs', {
         onReady: function() {
           fxn(1);
