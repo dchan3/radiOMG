@@ -24,13 +24,14 @@ export const currentPlaylist = function() {
     $where: function() {
       return currentDay(this);
     }
-  }, { sort: { startTime: -1 } });
+  }, { sort: { showDate: -1, startTime: -1 }, limit: 1 });
 };
 
 export const lastPlaylist = function() {
   var ret = currentPlaylist();
   if (!ret.length) {
-    ret = Playlists.find({}, { sort: { startTime: -1 }, limit: 1 });
+    ret = Playlists.find({}, { sort: { showDate: -1,
+      startTime: -1 }, limit: 1 });
   }
   return ret;
 };
@@ -180,4 +181,3 @@ export const requestSpinDataSync = async function(playlistId) {
     }
   });
 };
-
