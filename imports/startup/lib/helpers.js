@@ -169,14 +169,14 @@ export const requestSpinData = async function(playlistId, cb) {
 };
 
 export const requestSpinDataSync = async function(playlistId) {
-  await new Promise((resolve, reject) => {
+  return await new Promise((resolve, reject) => {
     if (playlistId < 10000) {
       return resolve(null);
     }
     else {
       Meteor.call('getPlaylistSpins', playlistId, function(error, result) {
         if (error) return reject(error);
-        resolve(result);
+        return resolve(result.data.items);
       });
     }
   });

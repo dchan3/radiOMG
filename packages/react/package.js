@@ -17,7 +17,6 @@ Package.onUse(function(api) {
 
   api.imply([
     'ecmascript',
-    'react-runtime@16.0.0',
-    'react-meteor-data@0.2.16'
+    'react-runtime@16.0.0'
   ]);
 });

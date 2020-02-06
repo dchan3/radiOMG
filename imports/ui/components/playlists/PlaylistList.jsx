@@ -9,12 +9,12 @@ import { default as momentUtil } from 'moment';
 import moment from 'moment-timezone';
 import { Metamorph } from 'react-metamorph';
 import {
-  PlaylistViewProvider,
   usePlaylistViewContext
 } from './PlaylistViewContext';
 
 function PlaylistList() {
-  let { playlistView, playlistData, playlist, showInfo } = usePlaylistViewContext();
+  let { playlistView, playlistData, playlist, showInfo, showStr
+  } = usePlaylistViewContext();
 
   function isPlaylistCurrent() {
     let current = currentPlaylistFindOne();
@@ -75,7 +75,7 @@ function PlaylistList() {
     } else return null;
   }
 
-  if (showInfo) {
+  if (playlist) {
     return [
       <Metamorph
         title="Show Playlists - KTUH FM Honolulu | Radio for the People"
@@ -92,10 +92,7 @@ function PlaylistList() {
             'CURRENT PLAYLIST' : 'LAST LOGGED PLAYLIST'}
         </h5>
         <h3 className='playlist-list__show-name'>
-          {showInfo !== 'not found' && ((showInfo.slug && showInfo.showName) &&
-            <a href={`/shows/${showInfo.slug}`}>
-              {showInfo.showName}
-            </a> || showInfo.showName || 'Sub Show') || 'Sub Show'}
+          {showStr}
         </h3>
         {showInfo !== 'not found' &&
           showInfo.synopsis && <p>{showInfo.synopsis}</p> || null}
@@ -105,8 +102,7 @@ function PlaylistList() {
               timeHMS(playlist.showDate, playlist.startTime, playlist.endTime)
             } • Hosted by ${playlist.djName}` || null}
         </h5>
-        {playlistData && playlistData.length &&
-        <PlaylistTable tracks={playlistData} onPage={false}/> || null}
+        <PlaylistTable tracks={playlistData} onPage={false}/>
       </div>,
       <PlaylistSidebar key='playlist-sidebar'/>
     ];
@@ -114,5 +110,4 @@ function PlaylistList() {
   else return null;
 }
 
-export default () => (
-  <PlaylistViewProvider><PlaylistList /></PlaylistViewProvider>);
+export default PlaylistList;

@@ -27,6 +27,7 @@ export default function PlaylistTable({ tracks, onPage }) {
       });
       return retval;
     }
+    return undefined;
   }
 
   return <table className='playlist'>
@@ -42,7 +43,7 @@ export default function PlaylistTable({ tracks, onPage }) {
       </tr>
     </thead>
     <tbody>
-      {songsSorted().map(({
+      {songsSorted() && songsSorted().map(({
         start, artist, song, Timestamp, ArtistName, SongName
       }) => {
         return start && <tr key={`${start} | ${artist} - ${artist}`}>

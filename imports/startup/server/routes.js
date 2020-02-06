@@ -95,6 +95,10 @@ Picker.route('/spinitron/latest', function(params, req, res) {
   res.end();
 });
 
+Picker.route('/feed/podcast', function(params, req, res, next) {
+  return next();
+});
+
 // SEO Routes
 const SeoRouter = Picker.filter(function(request) {
   var botAgents = [
@@ -332,10 +336,10 @@ BrowserFilter.route('/:slug', async function(params, request, response, next) {
   var static_routes = [
     'alumni', 'about-us', 'join-ktuh', 'faq', 'resend', 'staff', 'timeline',
     'underwriting', 'contact-us', 'radioblog', 'shows', 'playlists', 'events',
-    'reviews', 'profile',
+    'reviews', 'profile', 'favicon.ico', 'manifest.json'
   ];
   if (!params.slug.match(/\.[a-z0-9]+$/i) &&
-      !static_routes.includes[params.slug]) {
+      !static_routes.includes(params.slug)) {
     response.statusCode = 404;
   }
   return next();

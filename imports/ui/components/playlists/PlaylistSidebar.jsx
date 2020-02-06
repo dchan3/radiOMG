@@ -1,13 +1,13 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import Shows from '../../../api/shows/shows_collection.js';
 import Playlists from '../../../api/playlists/playlists_collection.js';
 import { default as moment } from 'moment';
 import { uniq, map, pluck } from 'underscore';
 import useSubscribe from '../../hooks/useSubscribe';
-import PlaylistViewContext from './PlaylistViewContext';
+import { usePlaylistViewContext } from './PlaylistViewContext';
 
 function PlaylistSidebar() {
-  let { playlistView, setPlaylistView } = useContext(PlaylistViewContext),
+  let { playlistView, setPlaylistView } = usePlaylistViewContext(),
     state = useSubscribe({
       sidebar: null
     }, function(fxn) {
