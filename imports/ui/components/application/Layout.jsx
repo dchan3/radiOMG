@@ -5,6 +5,7 @@ import Footer from '../includes/Footer.jsx';
 import { FlowRouter } from 'meteor/kadira:flow-router';
 import Banner from '../includes/Banner.jsx';
 import { PlaylistViewProvider } from '../playlists/PlaylistViewContext';
+import { PlayingProvider } from '../../contexts/PlayingContext';
 export default function Layout({ content }) {
   function home() {
     return FlowRouter.getRouteName() === 'home';
@@ -17,18 +18,20 @@ export default function Layout({ content }) {
 
   return [
     home() ? <Banner /> : null,
-    <PlaylistViewProvider currentPlaylist={
-      FlowRouter.getRouteName() === 'playlistPage' ? parseInt(FlowRouter.getParam('slug')) : -1
+    <PlayingProvider><PlaylistViewProvider currentPlaylist={
+      FlowRouter.getRouteName() === 'playlistPage' ?
+        parseInt(FlowRouter.getParam('slug')) : -1
     }><div className='container' key='container'>
-      {home() && [<Landing key='landing' />,
-        <div className='spacer-lg' key='lg'/>] ||
+        {home() && [<Landing key='landing' />,
+          <div className='spacer-lg' key='lg'/>] ||
         <div className='spacer-sm' key='sm' />}
-      <Header key='header' />
-      <script src='/mejs/mediaelement-and-player.min.js'></script>
-      <div id='main'>
-        {content}
-      </div>
-    </div></PlaylistViewProvider>,
+        <Header key='header'
+          loaded={'http://stream.ktuh.org:8000/stream-mp3'} />
+        <script src='/mejs/mediaelement-and-player.min.js'></script>
+        <div id='main'>
+          {content}
+        </div>
+      </div></PlaylistViewProvider></PlayingProvider>,
     <Footer key='footer' />
   ];
 }

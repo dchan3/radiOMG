@@ -6,6 +6,7 @@ import { default as momentUtil } from 'moment';
 import moment from 'moment-timezone';
 import { $ } from 'meteor/jquery';
 import useSubscribe from '../../hooks/useSubscribe';
+import usePlayingContext from '../../hooks/usePlayingContext';
 
 function isSubShow() {
   var show = currentShow();
@@ -87,22 +88,35 @@ function LandingInfo({ nowPlaying }) {
     ];
   }
 
-  return <div className='landing__info'>
-    {currentShow() ? [currentShowName(), currentShowHost()] :
-      whatsNowPlaying() ?
-        <p className='landing__now-playing' key='landing-onair-text'>
-          On Air Now:</p> : null}
-    {whatsNowPlaying() ? renderNowPlaying() : [
+  let content = null;
+
+  if (currentShow() && whatsNowPlaying()) {
+    content = [currentShowName(), currentShowHost(), renderNowPlaying()];
+  }
+  else if (whatsNowPlaying()) {
+    content = [<p className='landing__now-playing' key='landing-onair-text'>
+      On Air Now:</p>, renderNowPlaying()];
+  }
+  else if (currentShow()) {
+    content = [currentShowName(), currentShowHost()];
+  }
+  else {
+    content = [
       <p className='landing__show-host' key='landing-show-host'>
         <b>Welcome to KTUH<br />FM Honolulu</b>
       </p>,
       <p className='landing__host-name' key="landing-host-name">
-        Radio for the People</p>]}
+        Radio for the People</p>]
+  }
+
+  return <div className='landing__info'>
+    {content}
   </div>;
 }
 
 function Landing() {
-  let [state, setState] = useState({ playing: false });
+  let [state, setState] = useState({ landingPlaying: false }),
+    { playing, setPlaying } = usePlayingContext();
 
   let np = useSubscribe({
     nowPlaying: null
@@ -137,11 +151,30 @@ function Landing() {
 
   useEffect(function() {
     setState({
-      playing: global.player && (!global.player.getPaused() &&
+      landingPlaying: playing && (global.player &&
         global.player.getSrc() === 'http://stream.ktuh.org:8000/stream-mp3')
           || false
     });
-  }, []);
+  }, [playing]);
+
+  useEffect(function() {
+    if (global.player && global.player.getSrc() ===
+      'http://stream.ktuh.org:8000/stream-mp3') {
+      $('.mejs__time-slider').css('visibility', 'hidden');
+      $('.mejs__time-rail').append(
+        '<span class="mejs__broadcast">Live Broadcast</span>');
+    }
+  }, [
+    global.player && global.player.getSrc()
+  ]);
+
+  useEffect(function() {
+    setState({
+      landingPlaying: playing && (global.player &&
+        global.player.getSrc() === 'http://stream.ktuh.org:8000/stream-mp3')
+          || false
+    });
+  }, [global.player && global.player.getSrc()]);
 
   function background() {
     var h = getLocalTime().hour();
@@ -161,29 +194,35 @@ function Landing() {
   }
 
   function handlePlayBtn() {
-    var paused = global.player.getPaused();
-    if (global.player.getSrc() !== 'http://stream.ktuh.org:8000/stream-mp3') {
+    if (!state.landingPlaying && global.player.getSrc() !==
+        'http://stream.ktuh.org:8000/stream-mp3') {
       global.player.setSrc('http://stream.ktuh.org:8000/stream-mp3');
       global.player.play();
-      setState({ playing: true });
+      $('.mejs__time-slider').css('visibility', 'hidden');
+      $('.mejs__time-rail').append(
+        '<span class="mejs__broadcast">Live Broadcast</span>');
+      setPlaying(true);
+      setState({ landingPlaying: true });
       return;
     }
 
-    if (paused) {
+    if (!state.landingPlaying) {
       global.player.play();
+      setPlaying(true);
+      return;
     }
     else {
       global.player.pause();
+      setPlaying(false);
+      return;
     }
-
-    setState({ playing: !paused });
   }
 
   return <div className='landing' style={{ backgroundImage: background() }}>
     <div className='landing__box'>
       <div className='landing__play-btn-outer'
         onClick={handlePlayBtn}>
-        {state.playing ? [
+        {state.landingPlaying ? [
           <div className='landing__pause-btn-l'
             key='pause-button-left'></div>,
           <div className='landing__pause-btn-r'

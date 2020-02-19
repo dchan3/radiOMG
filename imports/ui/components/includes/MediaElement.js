@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Bert } from 'meteor/themeteorchef:bert';
 import { $ } from 'meteor/jquery';
 import { Session } from 'meteor/session';
 import 'mediaelement';
 import { scorpius } from 'meteor/scorpiusjs:core';
+import usePlayingContext from '../../hooks/usePlayingContext';
 
 export default function MediaElement({ options, id, src }) {
-  let [, setState] = useState({ });
+  let [, setState] = useState({ }), ref = useRef(),
+    { playing, setPlaying } = usePlayingContext();
 
   function success(mediaElement) {
     $('.mejs__time-rail').append(
@@ -15,6 +17,8 @@ export default function MediaElement({ options, id, src }) {
     $('.mejs__time-slider').css('visibility', 'hidden');
 
     $('.mejs__playpause-button').click(function () {
+      if (!playing) setPlaying(true);
+      else if (playing) setPlaying(false);
       if (Session.equals('defaultLoaded', true)) {
         var message = `Now playing the ${
           scorpius.dictionary.get('mainPage.title', 'station\'s')} live stream`;
@@ -26,6 +30,15 @@ export default function MediaElement({ options, id, src }) {
         }
       }
     });
+
+    mediaElement.addEventListener('playing', function() {
+      setPlaying(true);
+    });
+
+    mediaElement.addEventListener('pause', function() {
+      setPlaying(false);
+    });
+
     global.player = mediaElement;
   }
 
@@ -58,9 +71,18 @@ export default function MediaElement({ options, id, src }) {
       '<span class="mejs__broadcast">Live Broadcast</span>');
   }, []);
 
-  const mediaBody = `<source src="${src}" type="audio/mp3">`,
-    mediaHtml = `<audio id="${id}" controls>${mediaBody}</audio>`;
+  useEffect(function() {
+    if (global.player.getSrc() === 'http://stream.ktuh.org:8000/stream-mp3') {
+      $('.mejs__time-slider').css('visibility', 'hidden');
+      $('.mejs__time-rail').append(
+        '<span class="mejs__broadcast">Live Broadcast</span>');
+    }
+    else $('.mejs__time-slider').css('visibility', 'visible');
+  }, [global.player && global.player.getSrc()]);
 
-  return <div className="audio-player"
-    dangerouslySetInnerHTML={{ __html: mediaHtml }}></div>;
+  return <div className="audio-player">
+    <audio id={id} ref={ref} controls>
+      <source src={src} type="audio/mp3"></source>
+    </audio>
+  </div>;
 }
