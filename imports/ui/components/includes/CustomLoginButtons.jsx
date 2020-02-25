@@ -6,11 +6,11 @@ import { $ } from 'meteor/jquery';
 import LoginErrorMessage from './LoginErrorMessage.jsx';
 
 function CustomLoginButtons() {
-  let [userState, setUserState]= useState({ currentUser: null });
+  let [userState, setUserState]= useState(null);
 
   useEffect(function() {
     setUserState({ currentUser: Meteor.isClient ? Meteor.user() : null });
-  }, []);
+  }, [Meteor.isClient ? Meteor.user() : null]);
 
   function reducer(state, { attr, toggle, value }) {
     let newState = Object.assign({}, state);
@@ -336,7 +336,7 @@ function CustomLoginButtons() {
       "btn btn-default col-xs-12 col-sm-12">Cancel</button>];
   }
 
-  return (
+  return userState ? (
     <li id="login-dropdown-list" className='dropdown'>
       <a className="dropdown-toggle" data-toggle="dropdown">
         {(userState.currentUser ? userState.currentUser.username :
@@ -354,7 +354,7 @@ function CustomLoginButtons() {
             (state.forgot ? menuForgot() : menuNone()))}
       </div>
     </li>
-  );
+  ) : null;
 }
 
 export default CustomLoginButtons;
