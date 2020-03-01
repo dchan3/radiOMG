@@ -8,12 +8,13 @@ import { Metamorph } from 'react-metamorph';
 import useSubscribe from '../../hooks/useSubscribe';
 
 function ShowList() {
-  const day = FlowRouter.getQueryParam('day'),
-    dows = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday',
+  const dows = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday',
       'Friday', 'Saturday'], date = getLocalTime();
 
-  let [, setState] = useState({
-    day: dows.indexOf(FlowRouter.getQueryParam('day'))
+  let dow = FlowRouter.getQueryParam('day');
+
+  let [state, setState] = useState({
+    day: dow ? dows.indexOf(dow) : date.day()
   });
 
   let listState = useSubscribe(null, function(fxn) {
@@ -28,19 +29,13 @@ function ShowList() {
 
   function active(d) {
     // We're not routed to a particular day of the week
-    let activeDay = (day === undefined || dows.indexOf(day) === -1) ?
-      date.day() : dows.indexOf(day);
+    let activeDay = state.day;
     if (d === dows[activeDay]) return 'active';
     return '';
   }
 
   function daysShows() {
-    let startDay = 0;
-    if (day === undefined || !dows.includes(day)) {
-      startDay = date.day();
-    } else {
-      startDay = dows.indexOf(day);
-    }
+    let startDay = state.day;
     return Shows.find({ startDay },
       { sort: { startHour: 1, startMinute: 1 } }).fetch();
   }
@@ -56,7 +51,7 @@ function ShowList() {
     return <div className={`shows__days shows__days__${width}`}>
       {dows.map(function(day, i) {
         return (
-          <a href={`/shows?day=${day}` } onClick={(e) => handleClick(e)(i)}>
+          <a href={`/shows?day=${day}`} onClick={(e) => handleClick(e)(i)}>
             <span className={`shows__day ${active(day)}`}>
               {width === 'narrow' ? day.substring(0,3) : day}</span>
           </a>
