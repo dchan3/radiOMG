@@ -31,12 +31,12 @@ export const PlaylistViewProvider = ({ children, currentPlaylist }) => {
     return momentUtil(moment(date).tz('Pacific/Honolulu')).format('LL');
   }
 
-  function showTime(playlist) {
-    return playlist && (`${(momentUtil(
+  function showTime(pl) {
+    return pl && (`${(momentUtil(
       moment(
-        momentUtil(playlist.startTime, 'HH:mm:ss')).tz('Pacific/Honolulu'))
+        momentUtil(pl.startTime, 'HH:mm:ss')).tz('Pacific/Honolulu'))
     ).format('h:mm')}-${momentUtil(
-      moment(momentUtil(playlist.endTime, 'HH:mm:ss'))
+      moment(momentUtil(pl.endTime, 'HH:mm:ss'))
         .tz('Pacific/Honolulu')).format('h:mm a')}`);
   }
 
@@ -77,60 +77,6 @@ export const PlaylistViewProvider = ({ children, currentPlaylist }) => {
             onReady: async function () {
             let res = await requestSpinDataSync(playlistOne.spinPlaylistId);
             setPlaylistData(res);
-              let show = null, pl = playlistOne;
-              if (pl && pl.showId > -1) {
-                show = Shows.findOne({ showId: pl.showId });
-              }
-
-              setShowInfo(show || 'not found');
-              setPlaylist(pl);
-              if (show) setHeader(`${show.showName} w/ ${pl.djName} playlist - ${
-                showDateOfLatestPlaylist(pl.showDate)}`);
-              else setHeader(`${showTime(pl)} w/ ${
-                pl.djName} playlist - ${
-                showDateOfLatestPlaylist(pl.showDate)}`);
-            }
-          });
-        }
-      });
-  }, []);
-
-  useEffect(function() {
-    if (playlistView > -1)
-      Meteor.subscribe('playlist', playlistView, {
-        onReady: function() {
-          let playlistOne = Playlists.findOne({ spinPlaylistId: playlistView });
-          Meteor.subscribe('djs');
-          Meteor.subscribe('djProfiles');
-          Meteor.subscribe('activeShows', {
-            onReady: async function () {
-              let res = await requestSpinDataSync(playlistOne.spinPlaylistId);
-              setPlaylistData(res);
-              let show = null, pl = playlistOne;
-              if (pl && pl.showId > -1) {
-                show = Shows.findOne({ showId: pl.showId });
-              }
-
-              setShowInfo(show || 'not found');
-              setPlaylist(pl);
-              if (show) setHeader(`${show.showName} w/ ${pl.djName} playlist - ${
-                showDateOfLatestPlaylist(pl.showDate)}`);
-              else setHeader(`${showTime(pl)} w/ ${pl.djName} playlist - ${
-                showDateOfLatestPlaylist(pl.showDate)}`);
-            }
-          });
-        }
-      })
-      else Meteor.subscribe('lastPlaylist', {
-        onReady: function() {
-          let playlistOne = Playlists.findOne({
-          }, { sort: { showDate: -1, startTime: -1 } });
-          Meteor.subscribe('djs');
-          Meteor.subscribe('djProfiles');
-          Meteor.subscribe('activeShows', {
-            onReady: async function () {
-              let res = await requestSpinDataSync(playlistOne.spinPlaylistId);
-              setPlaylistData(res);
               let show = null, pl = playlistOne;
               if (pl && pl.showId > -1) {
                 show = Shows.findOne({ showId: pl.showId });

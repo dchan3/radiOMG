@@ -25,49 +25,52 @@ function ShowPage() {
         let show = Shows.findOne({ slug });
         if (show) {
           Meteor.subscribe('userById', show.userId);
-          Meteor.subscribe('showPlaylists', show.showId);
+          Meteor.subscribe('showPlaylists', show.showId, {
+            onReady: function() {
+              fxn({ actualPlaylist: function(playlistData) {
+                if (playlistData === undefined) return [];
+                let retval = playlistData;
+                retval.sort(function(a,b) {
+                  if (a.start > b.start) {
+                    return 1;
+                  }
+                  else if (a.start < b.start) {
+                    return -1;
+                  }
+                  else return 0;
+                });
+                return retval;
+              },
+              show: Shows.findOne({ slug: FlowRouter.getParam('slug') }),
+              pastPlaylists: function(showId) {
+                return Playlists.find({ showId },
+                  { sort: { showDate: -1 }, skip: 1 }).fetch()
+              },
+              playlistsByYear: (showId) => {
+                let playlistDates = Playlists.find({ showId }, { sort: {
+                    showDate: -1 }, skip: 1 }).fetch(),
+                  uniqDates = uniq(map(pluck(playlistDates,
+                    'showDate'), (obj) => obj.getFullYear()), true,
+                  (date) => +date),
+                  a = [];
+                for (let p = 0; p < uniqDates.length; p++) {
+                  let r = {};
+                  r.year = uniqDates[p];
+                  r.shows = filter(playlistDates,
+                    (obj) => obj.showDate.getFullYear() === uniqDates[p]);
+                  a.push(r);
+                }
+                return a;
+              }
+              });
+            }
+          });
         }
         else {
           FlowRouter.go('/not-found');
           return;
         }
       }
-    }, { onReady: function() {
-      fxn({ actualPlaylist: function(playlistData) {
-        if (playlistData === undefined) return [];
-        let retval = playlistData;
-        retval.sort(function(a,b) {
-          if (a.start > b.start) {
-            return 1;
-          }
-          else if (a.start < b.start) {
-            return -1;
-          }
-          else return 0;
-        });
-        return retval;
-      },
-      show: Shows.findOne({ slug: FlowRouter.getParam('slug') }),
-      pastPlaylists: function(showId) {
-        return Playlists.find({ showId },
-          { sort: { showDate: -1 }, skip: 1 }).fetch()
-      },
-      playlistsByYear: (showId) => {
-        let playlistDates = Playlists.find({ showId }, { sort: { showDate: -1 },
-            skip: 1 }).fetch(), uniqDates = uniq(map(pluck(playlistDates,
-            'showDate'), (obj) => obj.getFullYear()), true, (date) => +date),
-          a = [];
-        for (let p = 0; p < uniqDates.length; p++) {
-          let r = {};
-          r.year = uniqDates[p];
-          r.shows = filter(playlistDates,
-            (obj) => obj.showDate.getFullYear() === uniqDates[p]);
-          a.push(r);
-        }
-        return a;
-      }
-      });
-    }
     });
   })
 
