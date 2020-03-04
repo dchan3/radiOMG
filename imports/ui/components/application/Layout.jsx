@@ -18,10 +18,8 @@ export default function Layout({ content }) {
 
   return [
     home() ? <Banner /> : null,
-    <PlayingProvider><PlaylistViewProvider currentPlaylist={
-      FlowRouter.getRouteName() === 'playlistPage' ?
-        parseInt(FlowRouter.getParam('slug')) : -1
-    }><div className='container' key='container'>
+    <div className='container' key='container'>
+      <PlayingProvider>
         {home() && [<Landing key='landing' />,
           <div className='spacer-lg' key='lg'/>] ||
         <div className='spacer-sm' key='sm' />}
@@ -29,9 +27,14 @@ export default function Layout({ content }) {
           loaded={'http://stream.ktuh.org:8000/stream-mp3'} />
         <script src='/mejs/mediaelement-and-player.min.js'></script>
         <div id='main'>
-          {content}
+          <PlaylistViewProvider currentPlaylist={
+            FlowRouter.getRouteName() === 'playlistPage' ?
+              parseInt(FlowRouter.getParam('slug')) : -1}>
+            {content}
+          </PlaylistViewProvider>
         </div>
-      </div></PlaylistViewProvider></PlayingProvider>,
+      </PlayingProvider>
+    </div>,
     <Footer key='footer' />
   ];
 }

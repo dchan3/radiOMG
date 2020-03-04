@@ -28,6 +28,14 @@ export default function MediaElement({ options, id, src }) {
       }
     });
 
+    mediaElement.addEventListener('playing', function() {
+      setPlaying(true);
+    });
+
+    mediaElement.addEventListener('pause', function() {
+      setPlaying(false);
+    });
+
     global.player = mediaElement;
   }
 

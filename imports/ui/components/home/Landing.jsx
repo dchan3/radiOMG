@@ -117,6 +117,8 @@ function LandingInfo({ nowPlaying }) {
 function LandingPlayBtn() {
   let { playing, src, setPlaying, setSrc } = useContext(PlayingContext);
 
+  let p = src === 'http://stream.ktuh.org:8000/stream-mp3' && playing;
+
   function handlePlayBtn() {
     if (src !== 'http://stream.ktuh.org:8000/stream-mp3') {
       setSrc('http://stream.ktuh.org:8000/stream-mp3');
@@ -134,12 +136,9 @@ function LandingPlayBtn() {
     }
   }
 
-  let landingPlaying =
-    src === 'http://stream.ktuh.org:8000/stream-mp3' && playing;
-
   return <div className='landing__play-btn-outer'
     onClick={handlePlayBtn}>
-    {landingPlaying ? [
+    {(p) ? [
       <div className='landing__pause-btn-l'
         key='pause-button-left'></div>,
       <div className='landing__pause-btn-r'
