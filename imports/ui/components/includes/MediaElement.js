@@ -1,24 +1,21 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { Bert } from 'meteor/themeteorchef:bert';
 import { $ } from 'meteor/jquery';
 import { Session } from 'meteor/session';
 import 'mediaelement';
 import { scorpius } from 'meteor/scorpiusjs:core';
-import usePlayingContext from '../../hooks/usePlayingContext';
+import PlayingContext from '../../contexts/PlayingContext';
 
 export default function MediaElement({ options, id, src }) {
   let [, setState] = useState({ }), ref = useRef(),
-    { playing, setPlaying } = usePlayingContext();
+    { playing, setPlaying, src: ctxSrc } = useContext(PlayingContext);
 
   function success(mediaElement) {
-    $('.mejs__time-rail').append(
-      '<span class="mejs__broadcast">Live Broadcast</span>');
-
     $('.mejs__time-slider').css('visibility', 'hidden');
 
     $('.mejs__playpause-button').click(function () {
-      if (!playing) setPlaying(true);
-      else if (playing) setPlaying(false);
+      setPlaying(!playing);
+
       if (Session.equals('defaultLoaded', true)) {
         var message = `Now playing the ${
           scorpius.dictionary.get('mainPage.title', 'station\'s')} live stream`;
@@ -29,14 +26,6 @@ export default function MediaElement({ options, id, src }) {
           Session.set('playedStream', true);
         }
       }
-    });
-
-    mediaElement.addEventListener('playing', function() {
-      setPlaying(true);
-    });
-
-    mediaElement.addEventListener('pause', function() {
-      setPlaying(false);
     });
 
     global.player = mediaElement;
@@ -66,23 +55,13 @@ export default function MediaElement({ options, id, src }) {
     });
 
     setState({ player: new MediaElementPlayer(id, newOptions) });
-
-    $('.mejs__time-rail').append(
-      '<span class="mejs__broadcast">Live Broadcast</span>');
   }, []);
-
-  useEffect(function() {
-    if (global.player.getSrc() === 'http://stream.ktuh.org:8000/stream-mp3') {
-      $('.mejs__time-slider').css('visibility', 'hidden');
-      $('.mejs__time-rail').append(
-        '<span class="mejs__broadcast">Live Broadcast</span>');
-    }
-    else $('.mejs__time-slider').css('visibility', 'visible');
-  }, [global.player && global.player.getSrc()]);
 
   return <div className="audio-player">
     <audio id={id} ref={ref} controls>
       <source src={src} type="audio/mp3"></source>
     </audio>
+    {(ctxSrc === 'http://stream.ktuh.org:8000/stream-mp3') ?
+      <span className="mejs__broadcast">Live Broadcast</span> : null}
   </div>;
 }

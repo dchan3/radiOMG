@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Meteor } from 'meteor/meteor';
 import { default as momentUtil } from 'moment';
 import moment from 'moment-timezone';
@@ -11,6 +11,41 @@ import { Metamorph } from 'react-metamorph';
 import { filter, uniq, map, pluck } from 'underscore';
 import { $ } from 'meteor/jquery';
 import useSubscribe from '../../hooks/useSubscribe';
+import PlayingContext from '../../contexts/PlayingContext';
+
+function ShowPageBtn({ show, url }) {
+  let { playing, src, setPlaying, setSrc } = useContext(PlayingContext);
+
+  function handlePlayClick(event) {
+    event.preventDefault();
+    var mp3Url = url;
+    var nowLoaded = src;
+
+    if (nowLoaded != mp3Url) {
+      var message = `Now playing the latest episode of ${show.showName}`;
+      setSrc(mp3Url);
+      Session.set('defaultLoaded', false);
+      if (!Session.get('playedStream')) Session.set('playedStream', true);
+      Bert.alert(message, 'default', 'growl-top-right', 'fa-music');
+    }
+    else if (!playing) setPlaying(true);
+    else setPlaying(false);
+  }
+
+  let p = src === url && playing;
+
+  return <div className='button__wrapper'>
+    <p className='show__tag'>
+      <button type="button" data-path={url} className=
+        'btn btn-default show__play-btn color-button purple-button'
+      onClick={handlePlayClick} aria-label="Left Align">
+        <span className={`glyphicon ${p &&
+        'glyphicon-pause' || 'glyphicon-play'}`} aria-hidden="true">
+        </span> {' '}Play latest episode
+      </button>
+    </p>
+  </div>;
+}
 
 function ShowPage() {
   let [state, setState] = useState({
@@ -79,10 +114,6 @@ function ShowPage() {
       'Saturday'][num];
   }
 
-  function isPlaying(mp3) {
-    return global.player.getSrc() === mp3 && !global.player.getPaused();
-  }
-
   function toLocal(timeStr, f) {
     return momentUtil(moment(momentUtil(timeStr, 'HH:mm'),
       'Pacific/Honolulu')).format(f)
@@ -112,31 +143,6 @@ function ShowPage() {
   function timeBeautify2(time) {
     return momentUtil(
       moment(momentUtil(time)).tz('Pacific/Honolulu')).format('hh:mma');
-  }
-
-  function handlePlayClick(event) {
-    event.preventDefault();
-    var mp3Url = $(event.target).data('path');
-    var nowLoaded = player.getSrc();
-
-    if (nowLoaded != mp3Url) {
-      $('.mejs__time-slider').css('visibility', 'visible');
-      $('.mejs__broadcast').css('visibility', 'hidden');
-      player.setSrc(mp3Url);
-      var message = `Now playing the latest episode of ${
-        showState.show.showName}`;
-      Session.set('defaultLoaded', false);
-      player.setSrc(mp3Url);
-      if (!Session.get('playedStream')) Session.set('playedStream', true);
-      Bert.alert(message, 'default', 'growl-top-right', 'fa-music');
-    }
-
-    if (player.paused) {
-      player.play();
-    }
-    else if (!player.paused) {
-      player.pause();
-    }
   }
 
   function handleSelectChange(event) {
@@ -224,17 +230,7 @@ function ShowPage() {
               {` ${genres.join(', ')}`}</div> || null}
             <div className='show__buttons'>
               {latestEpisodeUrl &&
-              <div className='button__wrapper'>
-                <p className='show__tag'>
-                  <button type="button" data-path={latestEpisodeUrl} className=
-                    'btn btn-default show__play-btn color-button purple-button'
-                  onClick={handlePlayClick} aria-label="Left Align">
-                    <span className={`glyphicon ${isPlaying(latestEpisodeUrl) &&
-                    'glyphicon-pause' || 'glyphicon-play'}`} aria-hidden="true">
-                    </span> {' '}Play latest episode
-                  </button>
-                </p>
-              </div> || null}
+              <ShowPageBtn url={latestEpisodeUrl} show={show} /> || null}
               <div className='button__wrapper'>
                 <p className='show__host'>
                   <button type="button" className={'btn btn-default ' +

@@ -17,14 +17,6 @@ function activePage() {
 
 export default function Header({ loaded }) {
   useEffect(function() {
-    if (global.player && global.player.getSrc() ===
-      'http://stream.ktuh.org:8000/stream-mp3')
-      $('.mejs__time-rail').append(
-        '<span class="mejs__broadcast">Live Broadcast</span>');
-    else $('.mejs__time-slider').css('visibility', 'visible');
-  }, [global.player && global.player.getSrc()]);
-
-  useEffect(function() {
     $('.mejs__time-slider').css('visibility', 'hidden');
     var $searchInput = $('.nav__search input');
     Session.set('nowPlaying', 'Live audio stream.');

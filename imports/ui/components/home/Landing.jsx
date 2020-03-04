@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useContext } from 'react';
 import { currentPlaylistFindOne, currentShow, getLocalTime,
   usernameFromDisplayName } from '../../../startup/lib/helpers.js';
 import NowPlaying from '../../../api/playlists/now_playing.js';
@@ -6,7 +6,7 @@ import { default as momentUtil } from 'moment';
 import moment from 'moment-timezone';
 import { $ } from 'meteor/jquery';
 import useSubscribe from '../../hooks/useSubscribe';
-import usePlayingContext from '../../hooks/usePlayingContext';
+import PlayingContext from '../../contexts/PlayingContext';
 
 function isSubShow() {
   var show = currentShow();
@@ -114,10 +114,45 @@ function LandingInfo({ nowPlaying }) {
   </div>;
 }
 
-function Landing() {
-  let [state, setState] = useState({ landingPlaying: false }),
-    { playing, setPlaying } = usePlayingContext();
+function LandingPlayBtn() {
+  let { playing, src, setPlaying, setSrc } = useContext(PlayingContext);
 
+  function handlePlayBtn() {
+    if (src !== 'http://stream.ktuh.org:8000/stream-mp3') {
+      setSrc('http://stream.ktuh.org:8000/stream-mp3');
+      setPlaying(true);
+      return;
+    }
+
+    if (!playing) {
+      setPlaying(true);
+      return;
+    }
+    else {
+      setPlaying(false);
+      return;
+    }
+  }
+
+  let landingPlaying =
+    src === 'http://stream.ktuh.org:8000/stream-mp3' && playing;
+
+  return <div className='landing__play-btn-outer'
+    onClick={handlePlayBtn}>
+    {landingPlaying ? [
+      <div className='landing__pause-btn-l'
+        key='pause-button-left'></div>,
+      <div className='landing__pause-btn-r'
+        key='pause-button-right'></div>
+    ] : (
+      <div className='landing__play-btn' key='play-button'>
+        <div className='landing__play-btn-triangle'></div>
+      </div>
+    )}
+  </div>
+}
+
+function Landing() {
   let np = useSubscribe({
     nowPlaying: null
   }, function(fxn) {
@@ -147,34 +182,7 @@ function Landing() {
         }
       });
     } });
-  })
-
-  useEffect(function() {
-    setState({
-      landingPlaying: playing && (global.player &&
-        global.player.getSrc() === 'http://stream.ktuh.org:8000/stream-mp3')
-          || false
-    });
-  }, [playing]);
-
-  useEffect(function() {
-    if (global.player && global.player.getSrc() ===
-      'http://stream.ktuh.org:8000/stream-mp3') {
-      $('.mejs__time-slider').css('visibility', 'hidden');
-      $('.mejs__time-rail').append(
-        '<span class="mejs__broadcast">Live Broadcast</span>');
-    }
-  }, [
-    global.player && global.player.getSrc()
-  ]);
-
-  useEffect(function() {
-    setState({
-      landingPlaying: playing && (global.player &&
-        global.player.getSrc() === 'http://stream.ktuh.org:8000/stream-mp3')
-          || false
-    });
-  }, [global.player && global.player.getSrc()]);
+  });
 
   function background() {
     var h = getLocalTime().hour();
@@ -193,46 +201,9 @@ function Landing() {
     $('HTML, BODY').animate({ scrollTop: position - navHeight + 2 }, 600);
   }
 
-  function handlePlayBtn() {
-    if (!state.landingPlaying && global.player.getSrc() !==
-        'http://stream.ktuh.org:8000/stream-mp3') {
-      global.player.setSrc('http://stream.ktuh.org:8000/stream-mp3');
-      global.player.play();
-      $('.mejs__time-slider').css('visibility', 'hidden');
-      $('.mejs__time-rail').append(
-        '<span class="mejs__broadcast">Live Broadcast</span>');
-      setPlaying(true);
-      setState({ landingPlaying: true });
-      return;
-    }
-
-    if (!state.landingPlaying) {
-      global.player.play();
-      setPlaying(true);
-      return;
-    }
-    else {
-      global.player.pause();
-      setPlaying(false);
-      return;
-    }
-  }
-
   return <div className='landing' style={{ backgroundImage: background() }}>
     <div className='landing__box'>
-      <div className='landing__play-btn-outer'
-        onClick={handlePlayBtn}>
-        {state.landingPlaying ? [
-          <div className='landing__pause-btn-l'
-            key='pause-button-left'></div>,
-          <div className='landing__pause-btn-r'
-            key='pause-button-right'></div>
-        ] : (
-          <div className='landing__play-btn' key='play-button'>
-            <div className='landing__play-btn-triangle'></div>
-          </div>
-        )}
-      </div>
+      <LandingPlayBtn />
       <LandingInfo host={showActualHost()} nowPlaying={np.nowPlaying} />
     </div>
     <h4 className='landing__freq landing__hnl-freq'>90.1 FM Honolulu</h4>

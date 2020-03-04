@@ -648,7 +648,9 @@ audio {
   font-family: 'nimbus-sans' !important;
   font-size: 11px !important;
   text-transform: none !important;
-  top: 7px !important;
+  top: 11.5px !important;
+  left: 42px;
+  position: unset;
 }
 .mejs__time-handle, .mejs__time-handle-content {
   left: 0 !important;
