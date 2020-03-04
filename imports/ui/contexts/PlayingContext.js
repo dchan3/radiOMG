@@ -8,7 +8,8 @@ const { Provider } = PlayingContext;
 export const PlayingProvider = ({ children, value }) => {
   let [playing, setPlaying] = useState(value && value.playing || false),
     [src, setSrc] = useState(value && value.src ||
-      'http://stream.ktuh.org:8000/stream-mp3')
+      'http://stream.ktuh.org:8000/stream-mp3');
+  let [loaded, setLoaded] = useState(false);
 
   useEffect(function() {
     if (global.player) {
@@ -20,8 +21,11 @@ export const PlayingProvider = ({ children, value }) => {
   useEffect(function() {
     if (global.player) {
       global.player.setSrc(src);
-      global.player.play();
-      setPlaying(true);
+      if (loaded) {
+        global.player.play();
+        setPlaying(true);
+      }
+      else setLoaded(true);
     }
   }, [src]);
 
